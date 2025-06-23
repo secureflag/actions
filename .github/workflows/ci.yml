@@ -1,22 +1,24 @@
+# Pre-requisites.
+# 1. Create Personal Access Token with repository_advisories:read perms
+#    Store it to secrets as SEC_TOKEN, or update also the workflow below
 name: Block push unless security reference is approved
 
 on:
+  push:
+    branches: [main]
   pull_request:
-    branches: [main] # Replace with your default branch
+    branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   security-approval:
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: read
-      security-events: read
-      pull-requests: read
-
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # 1) Extract the first security-issue reference from the commits in this push
       - name: Find security reference in commits messages
@@ -24,40 +26,39 @@ jobs:
         shell: bash
         run: |
           # Collect commit subjects introduced by this push
-          COMMIT_MESSAGES=$(git log --pretty=format:"%s" ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
-          echo "New commit messages: $COMMIT_MESSAGES"
+          # For push events
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            range="${{ github.event.before }}..${{ github.event.after }}"
+          # For PR events
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            range="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+          fi
           
+          COMMIT_MESSAGES=$(git log --pretty=format:"%s" $range 2>&1 || echo "git-log-error")
+          echo $COMMIT_MESSAGES
           # Regex for GitHub Security Advisory IDs
-          GHSA_ID=$(echo "$COMMIT_MESSAGES" | grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' | head -n 1)
-          if [ $GHSA_ID ]; then
-            echo "Extracted GHSA ID: $GHSA_ID"
-            echo "ghsa_id=$GHSA_ID" >>"$GITHUB_OUTPUT"
-          else
-            echo "GHSA ID was not found in commit messages"
-            exit 1
+          GHSA_ID=$(echo "$COMMIT_MESSAGES" | grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' | head -n 1 || echo "")
+          echo "Extracted GHSA ID: $GHSA_ID"
+          echo "ghsa_id=$GHSA_ID" >> $GITHUB_OUTPUT
 
       # 2) Check Repository's Secuirty Advisories for the found GHSA ID
       - name: Check Security Advisories
         if: steps.extract.outputs.ghsa_id != ''
         id: secur_adv
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REF: ${{ steps.extract.outputs.ghsa_id }}
+          GHSA_ID: ${{ steps.extract.outputs.ghsa_id }}
         run: |
           RESPONSE=$(curl -s \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/security-advisories/${GHSA_ID}")
+            -H 'Authorization: Bearer ${{ secrets.SEC_TOKEN }}' \
+            -H 'Accept: application/vnd.github+json' \
+            https://api.github.com/repos/${{ github.repository }}/security-advisories/${GHSA_ID})
 
-          advisory_summary = ""
+          advisory_summary=""
           if [ "$(echo "$RESPONSE" | jq -r '.message')" != "Not Found" ]; then
-            advisory_summary = $(echo $RESPONSE | jq -r '.summary')
+            advisory_summary=$(echo $RESPONSE | jq -r '.summary')
             echo "Advisory Summary: $advisory_summary"
-            echo "advisory_summary=$advisory_summary" >>"$GITHUB_OUTPUT"
-          else
-            echo "No Security Advisory was found with such GHSA ID"
-            exit 1
           fi
+          echo "advisory_summary=$advisory_summary" >> $GITHUB_OUTPUT
 
       # 3) Call the external API when a GHSA is found
       - name: Call external approval API
@@ -65,14 +66,15 @@ jobs:
         id: api
         env:
           SUMMARY: ${{ steps.secur_adv.outputs.advisory_summary }}
-          API_ENDPOINT: ${{ secrets.SECURITY_APPROVAL_ENDPOINT }}  # SecureFlag's API Endpoint
-          API_TOKEN: ${{ secrets.SECURITY_APPROVAL_TOKEN }}        # Secureflag's Bearer token
+          API_ENDPOINT: ${{ secrets.API_ENDPOINT }}  # SecureFlag's API Endpoint
+          API_TOKEN: ${{ secrets.API_TOKEN }}        # Secureflag's Bearer token
         run: |
           COMMITTER_EMAIL=$(git log -1 --pretty=format:"%ce" ${{ github.event.after }})
-          response=$(curl -s -H "Authorization: Bearer $API_TOKEN" \
-                           -H "Content-Type: application/json" \
-                           -d '{"issueTitle":"$SUMMARY","user":"$COMMITTER_EMAIL","days":"365"}' \
-                           "$API_ENDPOINT")
+          response=$(curl -s \
+            -H "Authorization: Bearer $API_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"issueTitle\":\"$SUMMARY\",\"user\":\"$COMMITTER_EMAIL\",\"days\":\"365\"}" \
+            $API_ENDPOINT)
 
           echo "API response: $response"
 
