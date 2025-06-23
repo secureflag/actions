@@ -34,12 +34,13 @@ jobs:
             range="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
           fi
           
+          echo $range
           COMMIT_MESSAGES=$(git log --pretty=format:"%s" $range 2>&1 || echo "git-log-error")
-          
+          echo $COMMIT_MESSAGES
           # Regex for GitHub Security Advisory IDs
           GHSA_ID=$(echo "$COMMIT_MESSAGES" | grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' | head -n 1)
           echo "Extracted GHSA ID: $GHSA_ID"
-          echo "ghsa_id=$GHSA_ID" >>"$GITHUB_OUTPUT"
+          echo "ghsa_id=$GHSA_ID" >> $GITHUB_OUTPUT
 
       # 2) Check Repository's Secuirty Advisories for the found GHSA ID
       - name: Check Security Advisories
@@ -59,7 +60,7 @@ jobs:
             advisory_summary = $(echo $RESPONSE | jq -r '.summary')
             echo "Advisory Summary: $advisory_summary"
           fi
-          echo "advisory_summary=$advisory_summary" >>"$GITHUB_OUTPUT"
+          echo "advisory_summary=$advisory_summary" >> $GITHUB_OUTPUT
 
       # 3) Call the external API when a GHSA is found
       - name: Call external approval API
