@@ -29,8 +29,10 @@ jobs:
           # For push events
           if [ "$GITHUB_EVENT_NAME" = "push" ]; then
             range="${{ github.event.before }}..${{ github.event.after }}"
+            COMMITTER_EMAIL=$(git log -1 --pretty=format:"%ce" ${{ github.event.after }})
           # For PR events
           elif [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            COMMITTER_EMAIL=$(git log --pretty=format:"%ae" -n 1 ${{ github.event.pull_request.head.sha }})
             range="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
           fi
           
@@ -40,6 +42,7 @@ jobs:
           GHSA_ID=$(echo "$COMMIT_MESSAGES" | grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' | head -n 1 || echo "")
           echo "Extracted GHSA ID: $GHSA_ID"
           echo "ghsa_id=$GHSA_ID" >> $GITHUB_OUTPUT
+          echo "commiter_email=$COMMITTER_EMAIL" >> $GITHUB_OUTPUT 
 
       # 2) Check Repository's Secuirty Advisories for the found GHSA ID
       - name: Check Security Advisories
@@ -68,8 +71,8 @@ jobs:
           SUMMARY: ${{ steps.secur_adv.outputs.advisory_summary }}
           API_ENDPOINT: ${{ secrets.API_ENDPOINT }}  # SecureFlag's API Endpoint
           API_TOKEN: ${{ secrets.API_TOKEN }}        # Secureflag's Bearer token
+          COMMITTER_EMAIL: ${{ steps.extract.outputs.commiter_email }}
         run: |
-          COMMITTER_EMAIL=$(git log -1 --pretty=format:"%ce" ${{ github.event.after }})
           response=$(curl -s \
             -H "Authorization: Bearer $API_TOKEN" \
             -H "Content-Type: application/json" \
