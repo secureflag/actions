@@ -7,14 +7,14 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
 
+permissions:
+  contents: read
+  security-events: read
+  pull-requests: read
+
 jobs:
   security-approval:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      security-events: read
-      pull-requests: read
 
     steps:
       - name: Check out the repository
@@ -48,13 +48,12 @@ jobs:
         if: steps.extract.outputs.ghsa_id != ''
         id: secur_adv
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHSA_ID: ${{ steps.extract.outputs.ghsa_id }}
         run: |
           RESPONSE=$(curl -s \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/security-advisories/${GHSA_ID}")
+            -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+            -H 'Accept: application/vnd.github+json' \
+            'https://api.github.com/repos/${{ github.repository }}/security-advisories/${GHSA_ID}')
 
           echo $RESPONSE
           advisory_summary=""
