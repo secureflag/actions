@@ -1,9 +1,9 @@
 name: Block push unless security reference is approved
 
 on:
-  push:
-    branches:
-      - main    # Replace with your default branch
+  pull_request:
+    branches: [main] # Replace with your default branch
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   security-approval:
@@ -24,7 +24,7 @@ jobs:
         shell: bash
         run: |
           # Collect commit subjects introduced by this push
-          COMMIT_MESSAGES=$(git log --pretty=format:"%s" ${{ github.event.before }}..${{ github.event.after }})
+          COMMIT_MESSAGES=$(git log --pretty=format:"%s" ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
           echo "New commit messages: $COMMIT_MESSAGES"
           
           # Regex for GitHub Security Advisory IDs
