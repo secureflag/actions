@@ -1,8 +1,10 @@
 name: Block push unless security reference is approved
 
 on:
+  push:
+    branches: [main]
   pull_request:
-    branches: [main] # Replace with your default branch
+    branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
@@ -24,8 +26,13 @@ jobs:
         shell: bash
         run: |
           # Collect commit subjects introduced by this push
-          COMMIT_MESSAGES=$(git log --pretty=format:"%s" ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
-          echo "New commit messages: $COMMIT_MESSAGES"
+          # For push events
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            echo "range=${{ github.event.before }}..${{ github.event.after }}" >> $GITHUB_OUTPUT
+          # For PR events
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            echo "range=${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+          fi
           
           # Regex for GitHub Security Advisory IDs
           GHSA_ID=$(echo "$COMMIT_MESSAGES" | grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' | head -n 1)
