@@ -1,3 +1,6 @@
+# Pre-requisites.
+# 1. Create Personal Access Token with repository_advisories:read perms
+#    Store it to secrets as SEC_TOKEN, or update also the workflow below
 name: Block push unless security reference is approved
 
 on:
@@ -50,7 +53,6 @@ jobs:
             -H 'Accept: application/vnd.github+json' \
             https://api.github.com/repos/${{ github.repository }}/security-advisories/${GHSA_ID})
 
-          echo $RESPONSE
           advisory_summary=""
           if [ "$(echo "$RESPONSE" | jq -r '.message')" != "Not Found" ]; then
             advisory_summary=$(echo $RESPONSE | jq -r '.summary')
@@ -68,6 +70,7 @@ jobs:
           API_TOKEN: ${{ secrets.SECURITY_APPROVAL_TOKEN }}        # Secureflag's Bearer token
         run: |
           COMMITTER_EMAIL=$(git log -1 --pretty=format:"%ce" ${{ github.event.after }})
+          echo $COMMITTER_EMAIL
           response=$(curl -s -H "Authorization: Bearer $API_TOKEN" \
                            -H "Content-Type: application/json" \
                            -d '{"issueTitle":"$SUMMARY","user":"$COMMITTER_EMAIL","days":"365"}' \
