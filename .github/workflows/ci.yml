@@ -40,7 +40,7 @@ jobs:
           COMMIT_MESSAGES=$(git log --pretty=format:"%s" $range 2>&1 || echo "git-log-error")
           echo $COMMIT_MESSAGES
           # Regex for GitHub Security Advisory IDs
-          GHSA_ID=$(echo "$COMMIT_MESSAGES" | grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' | head -n 1)
+          GHSA_ID=$(echo "$COMMIT_MESSAGES" | grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' | head -n 1 || echo "")
           echo "Extracted GHSA ID: $GHSA_ID"
           echo "ghsa_id=$GHSA_ID" >> $GITHUB_OUTPUT
 
