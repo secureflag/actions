@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # 1) Extract the first security-issue reference from the commits in this push
       - name: Find security reference in commits messages
