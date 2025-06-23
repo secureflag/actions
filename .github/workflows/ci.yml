@@ -66,12 +66,12 @@ jobs:
         id: api
         env:
           SUMMARY: ${{ steps.secur_adv.outputs.advisory_summary }}
-          API_ENDPOINT: ${{ secrets.SECURITY_APPROVAL_ENDPOINT }}  # SecureFlag's API Endpoint
-          API_TOKEN: ${{ secrets.SECURITY_APPROVAL_TOKEN }}        # Secureflag's Bearer token
+          API_ENDPOINT: ${{ secrets.API_ENDPOINT }}  # SecureFlag's API Endpoint
+          API_TOKEN: ${{ secrets.API_TOKEN }}        # Secureflag's Bearer token
         run: |
           COMMITTER_EMAIL=$(git log -1 --pretty=format:"%ce" ${{ github.event.after }})
-          echo $COMMITTER_EMAIL
-          response=$(curl -s -H "Authorization: Bearer $API_TOKEN" \
+          response=$(curl -s \
+            -H "Authorization: Bearer $API_TOKEN" \
             -H "Content-Type: application/json" \
             -d '{"issueTitle":$SUMMARY,"user":$COMMITTER_EMAIL,"days":"365"}' \
             $API_ENDPOINT)
