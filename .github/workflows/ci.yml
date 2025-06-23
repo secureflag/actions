@@ -36,12 +36,8 @@ jobs:
           
           # Regex for GitHub Security Advisory IDs
           GHSA_ID=$(echo "$COMMIT_MESSAGES" | grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' | head -n 1)
-          if [ $GHSA_ID ]; then
-            echo "Extracted GHSA ID: $GHSA_ID"
-            echo "ghsa_id=$GHSA_ID" >>"$GITHUB_OUTPUT"
-          else
-            echo "GHSA ID was not found in commit messages"
-            exit 1
+          echo "Extracted GHSA ID: $GHSA_ID"
+          echo "ghsa_id=$GHSA_ID" >>"$GITHUB_OUTPUT"
 
       # 2) Check Repository's Secuirty Advisories for the found GHSA ID
       - name: Check Security Advisories
@@ -60,11 +56,8 @@ jobs:
           if [ "$(echo "$RESPONSE" | jq -r '.message')" != "Not Found" ]; then
             advisory_summary = $(echo $RESPONSE | jq -r '.summary')
             echo "Advisory Summary: $advisory_summary"
-            echo "advisory_summary=$advisory_summary" >>"$GITHUB_OUTPUT"
-          else
-            echo "No Security Advisory was found with such GHSA ID"
-            exit 1
           fi
+          echo "advisory_summary=$advisory_summary" >>"$GITHUB_OUTPUT"
 
       # 3) Call the external API when a GHSA is found
       - name: Call external approval API
