@@ -28,11 +28,13 @@ jobs:
           # Collect commit subjects introduced by this push
           # For push events
           if [ "$GITHUB_EVENT_NAME" = "push" ]; then
-            echo "range=${{ github.event.before }}..${{ github.event.after }}" >> $GITHUB_OUTPUT
+            range=${{ github.event.before }}..${{ github.event.after }}
           # For PR events
           elif [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-            echo "range=${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+            range=${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}
           fi
+          
+          COMMIT_MESSAGES=$(git log --pretty=format:"%s" range 2>&1 || echo "git-log-error")
           
           # Regex for GitHub Security Advisory IDs
           GHSA_ID=$(echo "$COMMIT_MESSAGES" | grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' | head -n 1)
