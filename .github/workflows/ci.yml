@@ -49,7 +49,7 @@ jobs:
         id: secur_adv
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REF: ${{ steps.extract.outputs.ghsa_id }}
+          GHSA_ID: ${{ steps.extract.outputs.ghsa_id }}
         run: |
           RESPONSE=$(curl -s \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
