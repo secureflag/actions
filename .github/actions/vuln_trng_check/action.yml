@@ -83,8 +83,8 @@ runs:
         error=$(echo "$response" | jq -r '.error')
 
         if [ "$result" = true ] || [ "$error" = true ];then
-          echo "Training verified successfully"
+          echo "Training verification succeeded: User $COMMITTER_EMAIL completed training on the topics found in $GHSA_ID (\"$SUMMARY\"), action is approved"
         else
-          echo "::error::Training verification on $SUMMARY failed for $COMMITTER_EMAIL"
+          echo "::error:: Training verification failed: User $COMMITTER_EMAIL has not completed required training for $GHSA_ID (\"$SUMMARY\"), action is refused"
           exit 1
         fi
