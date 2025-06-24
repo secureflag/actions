@@ -71,6 +71,7 @@ runs:
       env:
         SUMMARY: ${{ steps.check_sec_adv.outputs.advisory_summary }}
         COMMITTER_EMAIL: ${{ steps.extract.outputs.commiter_email }}
+        GHSA_ID: ${{ steps.extract.outputs.ghsa_id }}
 
       run: |
         response=$(curl -s \
