@@ -104,11 +104,13 @@ runs:
       with:
         script: |
           try {
+            const encodedVulnerability = encodeURIComponent(process.env.VULNERABILITY);
+            const trainingUrl = `https://www.secureflag.com/go.html?type=search&c=${encodedVulnerability}`;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `### ❌ Merge request blocked\n\n**User**: ${process.env.COMMITTER_EMAIL}\nMust complete at least one training lab in the security category "${process.env.VULNERABILITY}" to proceed.\nClick *[here](https://www.secureflag.com/go.html?type=search&c=${process.env.VULNERABILITY})* to play a lab.`
+              body: `### ❌ Merge request blocked\n\n**User**: ${process.env.COMMITTER_EMAIL}\nMust complete at least one training lab in the security category "${process.env.VULNERABILITY}" to proceed.\nClick *[here](${trainingUrl})* to play a lab.`
             });
           } catch (error) {
             core.error(`Failed to create comment: ${error}`);
