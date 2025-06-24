@@ -1,0 +1,86 @@
+name: 'Vulnerability Training Check'
+description: 'Blocks push if employee is not trained on specific vulnerability'
+inputs:
+  target_repo:
+    description: 'Repository to check advisories in (format: owner/repo)'
+    required: true
+    default: ${{ github.repository }}
+  sec_token:
+    description: 'GitHub PAT with security advisory read access'
+    required: true
+    default: ${{ secrets.SEC_TOKEN }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # 1) Extract GHSA ID and committer email
+    - name: Find security reference
+      id: extract
+      shell: bash
+      run: |
+        if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+          range="${{ github.event.before }}..${{ github.event.after }}"
+          COMMITTER_EMAIL=$(git log -1 --pretty=format:"%ce" ${{ github.event.after }})
+        else
+          range="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+          COMMITTER_EMAIL=$(git log --pretty=format:"%ae" -n 1 ${{ github.event.pull_request.head.sha }})
+        fi
+
+        COMMIT_MESSAGES=$(git log --pretty=format:"%s" $range)
+        GHSA_ID=$(echo "$COMMIT_MESSAGES" | grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' | head -n 1)
+
+        echo "ghsa_id=$GHSA_ID" >> $GITHUB_OUTPUT
+        echo "commiter_email=$COMMITTER_EMAIL" >> $GITHUB_OUTPUT
+        echo "Extracted GHSA ID: $GHSA_ID"
+
+    # 2) Check target repo's advisories
+    - name: Verify advisory
+      if: steps.extract.outputs.ghsa_id != ''
+      shell: bash
+      env:
+        GHSA_ID: ${{ steps.extract.outputs.ghsa_id }}
+      run: |
+        RESPONSE=$(curl -s \
+          -H "Authorization: Bearer ${{ inputs.sec_token }}" \
+          -H "Accept: application/vnd.github+json" \
+          "https://api.github.com/repos/${{ inputs.target_repo }}/security-advisories/${GHSA_ID}")
+
+        advisory_summary=$(echo "$RESPONSE" | jq -r '.summary // empty')
+        if [ -z "$advisory_summary" ]; then
+          echo "::error::Advisory $GHSA_ID not found in ${{ inputs.target_repo }}"
+        else
+          echo "Advisory Summary: $advisory_summary"
+        fi
+        echo "advisory_summary=$advisory_summary" >> $GITHUB_OUTPUT
+
+    # 3) Call SecureFlag API
+    - name: Verify training
+      if: steps.extract.outputs.ghsa_id != '' && steps.extract.outputs.advisory_summary != ''
+      shell: bash
+      env:
+        SUMMARY: ${{ steps.extract.outputs.advisory_summary }}
+        COMMITTER_EMAIL: ${{ steps.extract.outputs.commiter_email }}
+        API_ENDPOINT: ${{ secrets.API_ENDPOINT }}  # SecureFlag's API Endpoint
+        API_TOKEN: ${{ secrets.API_TOKEN }}        # Secureflag's Bearer token
+
+      run: |
+        response=$(curl -s \
+          -H "Authorization: Bearer $API_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d "{\"issueTitle\":\"$SUMMARY\",\"user\":\"$COMMITTER_EMAIL\",\"days\":\"365\"}" \
+          $API_ENDPOINT)
+
+        result=$(echo "$response" | jq -r '.result')
+        error=$(echo "$response" | jq -r '.error')
+
+        if [ "$result" = true ] || [ "$error" = true ];then
+          echo "Training verified successfully"
+        else
+          echo "::error::Training verification on $SUMMARY failed for $COMMITTER_EMAIL"
+          exit 1
+        fi
