@@ -69,7 +69,7 @@ runs:
       if: steps.extract.outputs.ghsa_id != '' && steps.check_sec_adv.outputs.advisory_summary != ''
       shell: bash
       env:
-        SUMMARY: ${{ steps.extract.outputs.advisory_summary }}
+        SUMMARY: ${{ steps.check_sec_adv.outputs.advisory_summary }}
         COMMITTER_EMAIL: ${{ steps.extract.outputs.commiter_email }}
 
       run: |
