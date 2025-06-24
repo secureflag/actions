@@ -22,7 +22,7 @@ jobs:
   security-approval:
     runs-on: ubuntu-latest
     steps:
-      - uses: secureflag/actions/.github/actions/advisory_training_check@v1
+      - uses: secureflag/actions/.github/actions/advisory_training_check@main
         with:
           target_repo: ${{ github.repository }}
           sec_token: ${{ secrets.SEC_TOKEN }}
