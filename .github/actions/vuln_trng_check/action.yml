@@ -8,7 +8,12 @@ inputs:
   sec_token:
     description: 'GitHub PAT with security advisory read access'
     required: true
-    default: ${{ secrets.SEC_TOKEN }}
+  api_endpoint:
+    description: 'SecureFlag API endpoint'
+    required: true
+  api_token:
+    description: 'SecureFlag API token'
+    required: true
 
 runs:
   using: "composite"
@@ -65,15 +70,13 @@ runs:
       env:
         SUMMARY: ${{ steps.extract.outputs.advisory_summary }}
         COMMITTER_EMAIL: ${{ steps.extract.outputs.commiter_email }}
-        API_ENDPOINT: ${{ secrets.API_ENDPOINT }}  # SecureFlag's API Endpoint
-        API_TOKEN: ${{ secrets.API_TOKEN }}        # Secureflag's Bearer token
 
       run: |
         response=$(curl -s \
-          -H "Authorization: Bearer $API_TOKEN" \
+          -H "Authorization: Bearer ${{ inputs.api_token }}" \
           -H "Content-Type: application/json" \
           -d "{\"issueTitle\":\"$SUMMARY\",\"user\":\"$COMMITTER_EMAIL\",\"days\":\"365\"}" \
-          $API_ENDPOINT)
+          ${{ inputs.api_endpoint }})
 
         result=$(echo "$response" | jq -r '.result')
         error=$(echo "$response" | jq -r '.error')
