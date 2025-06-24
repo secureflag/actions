@@ -66,6 +66,7 @@ runs:
 
     # 3) Call SecureFlag API
     - name: Verify training
+      id: verify_training
       if: steps.extract.outputs.ghsa_id != '' && steps.check_sec_adv.outputs.advisory_summary != ''
       shell: bash
       env:
@@ -82,10 +83,33 @@ runs:
 
         result=$(echo "$response" | jq -r '.result')
         error=$(echo "$response" | jq -r '.error')
+        vulnerability=$(echo "$response" | jq -r '.vulnerability')
 
         if [ "$result" = true ] || [ "$error" = true ];then
           echo "Training verification succeeded: User $COMMITTER_EMAIL completed training on the topics found in $GHSA_ID (\"$SUMMARY\"), action is approved"
         else
           echo "::error:: Training verification failed: User $COMMITTER_EMAIL has not completed required training for $GHSA_ID (\"$SUMMARY\"), action is refused"
+          echo "vulnerability=$vulnerability" >> $GITHUB_OUTPUT
           exit 1
         fi
+
+    # 4) Comment on PR if training fails
+    - name: Add training required comment
+      if: failure() && steps.verify_training.conclusion == 'failure' && github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      env:
+        GITHUB_TOKEN: ${{ inputs.sec_token }}
+        COMMITTER_EMAIL: ${{ steps.extract.outputs.commiter_email }}
+        VULNERABILITY: ${{ steps.verify_training.outputs.vulnerability }}
+      with:
+        script: |
+          try {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `### ❌ Merge request blocked\n\n**User**: ${process.env.COMMITTER_EMAIL}\nMust complete at least one training lab in the security category "${process.env.VULNERABILITY}" to proceed.\nClick *[here](https://www.secureflag.com/go.html?type=search&c=${process.env.VULNERABILITY})* to play a lab.`
+            });
+          } catch (error) {
+            core.error(`Failed to create comment: ${error}`);
+          }
