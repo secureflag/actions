@@ -45,6 +45,7 @@ runs:
 
     # 2) Check target repo's advisories
     - name: Verify advisory
+      id: check_sec_adv
       if: steps.extract.outputs.ghsa_id != ''
       shell: bash
       env:
@@ -65,7 +66,7 @@ runs:
 
     # 3) Call SecureFlag API
     - name: Verify training
-      if: steps.extract.outputs.ghsa_id != '' && steps.extract.outputs.advisory_summary != ''
+      if: steps.extract.outputs.ghsa_id != '' && steps.check_sec_adv.outputs.advisory_summary != ''
       shell: bash
       env:
         SUMMARY: ${{ steps.extract.outputs.advisory_summary }}
