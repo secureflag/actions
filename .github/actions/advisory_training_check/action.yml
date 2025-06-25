@@ -30,10 +30,7 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.sec_token }}
       run: |
-        range="${{ github.event.before }}..${{ github.event.after }}"
         COMMITTER_EMAIL=$(git log -1 --pretty=format:"%ce" ${{ github.event.after }})
-
-        COMMIT_MESSAGES=$(git log --pretty=format:"%s" $range)
 
         PR_JSON=$(curl -L \
           -H "Accept: application/vnd.github+json" \
@@ -45,13 +42,18 @@ runs:
         PR_BODY=$(echo "$PR_JSON" | jq -r '.[0].body')
         PR_No=$(echo "$PR_JSON" | jq -r '.[0].number')
 
-        gh pr view $PR_No --json commits
+        COMMITS_JSON=$(gh pr view $PR_No --json commits)
+        COMMIT_MESSAGES=$(echo $COMMITS_JSON | jq -r '.commits[].messageHeadline')
 
         echo -e "$PR_TITLE\n$PR_BODY\n$COMMIT_MESSAGES\n$COMMITTER_EMAIL" #DEBUG
 
-        GHSA_IDS=$(echo "$COMMIT_MESSAGES $PR_TITLE $PR_BODY" | grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' | uniq || echo "")
+        GHSA_IDS=$(echo "$COMMIT_MESSAGES $PR_TITLE $PR_BODY" |
+          grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' |
+          sort -u |
+          tr '\n' ' ' |
+          xargs echo -n || echo "")
 
-        echo "ghsa_ids=\"$GHSA_IDS\"" >> $GITHUB_OUTPUT
+        echo "ghsa_ids=$GHSA_IDS" >> $GITHUB_OUTPUT
         echo "commiter_email=$COMMITTER_EMAIL" >> $GITHUB_OUTPUT
         echo "Extracted GHSA IDs: $GHSA_IDS"
 
