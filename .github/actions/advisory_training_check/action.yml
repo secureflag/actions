@@ -60,50 +60,71 @@ runs:
     # 2) Check target repo's advisories
     - name: Verify advisory
       id: check_sec_adv
-      if: steps.extract.outputs.ghsa_id != ''
+      if: steps.extract.outputs.ghsa_ids != ''
       shell: bash
       env:
-        GHSA_ID: ${{ steps.extract.outputs.ghsa_id }}
+        GHSA_IDS: ${{ steps.extract.outputs.ghsa_ids }}
       run: |
-        RESPONSE=$(curl -s \
-          -H "Authorization: Bearer ${{ inputs.sec_token }}" \
-          -H "Accept: application/vnd.github+json" \
-          "https://api.github.com/repos/${{ inputs.target_repo }}/security-advisories/${GHSA_ID}")
+        # Convert space-separated IDs to array
+        IFS=' ' read -ra GHSA_ARRAY <<< "$GHSA_IDS"
 
-        advisory_summary=$(echo "$RESPONSE" | jq -r '.summary // empty')
-        if [ -z "$advisory_summary" ]; then
-          echo "::error::Advisory $GHSA_ID not found in ${{ inputs.target_repo }}"
-        else
-          echo "Advisory Summary: $advisory_summary"
-        fi
-        echo "advisory_summary=$advisory_summary" >> $GITHUB_OUTPUT
+        ADVISORY_SUMMARIES=""
+        for GHSA_ID in "${GHSA_ARRAY[@]}"; do
+          echo "Checking advisory: $GHSA_ID"
 
+          RESPONSE=$(curl -s \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ inputs.target_repo }}/security-advisories/$GHSA_ID")
+
+          SUMMARY=$(echo "$RESPONSE" | jq -r '.summary // empty')
+
+          if [ -n "$SUMMARY" ]; then
+            echo "Found advisory: $SUMMARY ($GHSA_ID)"
+            ADVISORY_SUMMARIES+="$SUMMARY($GHSA_ID)"$'\n'
+          else
+            echo "::warning::Advisory $GHSA_ID not found"
+          fi
+        done
+        echo $ADVISORY_SUMMARIES
+        echo "advisory_summaries=${ADVISORY_SUMMARIES%$'\n'}" >> $GITHUB_OUTPUT
     # 3) Call SecureFlag API
     - name: Verify training
       id: verify_training
-      if: steps.extract.outputs.ghsa_id != '' && steps.check_sec_adv.outputs.advisory_summary != ''
+      if: steps.check_sec_adv.outputs.advisory_summaries != ''
       shell: bash
       env:
-        SUMMARY: ${{ steps.check_sec_adv.outputs.advisory_summary }}
+        SUMMARY: ${{ steps.check_sec_adv.outputs.advisory_summaries }}
         COMMITTER_EMAIL: ${{ steps.extract.outputs.commiter_email }}
-        GHSA_ID: ${{ steps.extract.outputs.ghsa_id }}
+        GHSA_ID: ${{ steps.extract.outputs.ghsa_ids }}
 
       run: |
-        response=$(curl -s \
-          -H "Authorization: Bearer ${{ inputs.api_token }}" \
-          -H "Content-Type: application/json" \
-          -d "{\"issueTitle\":\"$SUMMARY\",\"user\":\"$COMMITTER_EMAIL\",\"days\":\"365\"}" \
-          ${{ inputs.api_endpoint }})
+        IFS=$'\n' read -rd '' -a SUMMARY_ARRAY <<< "$SUMMARIES"
+        VULNERABILITIES=""
 
-        result=$(echo "$response" | jq -r '.result')
-        error=$(echo "$response" | jq -r '.error')
-        vulnerability=$(echo "$response" | jq -r '.vulnerability')
+        for sum_ghsa in "${SUMMARY_ARRAY[@]}"; do
+          echo "Verifying training for: $sum_ghsa"
 
-        if [ "$result" = true ] || [ "$error" = true ];then
-          echo "Training verification succeeded: User $COMMITTER_EMAIL completed training on the topics found in $GHSA_ID (\"$SUMMARY\"), action is approved"
-        else
-          echo "::error:: Training verification failed: User $COMMITTER_EMAIL has not completed required training for $GHSA_ID (\"$SUMMARY\"), action is refused"
-          echo "vulnerability=$vulnerability" >> $GITHUB_OUTPUT
+          SUMMARY=$(echo sum_ghsa | cut -d( -n0)
+          response=$(curl -s \
+            -H "Authorization: Bearer ${{ inputs.api_token }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"issueTitle\":\"$SUMMARY\",\"user\":\"$COMMITTER_EMAIL\",\"days\":\"365\"}" \
+            ${{ inputs.api_endpoint }})
+
+          result=$(echo "$response" | jq -r '.result')
+          error=$(echo "$response" | jq -r '.error')
+          vulnerability=$(echo "$response" | jq -r '.vulnerability')
+
+          if [ "$result" = true ] || [ "$error" = true ];then
+            echo "Training verification succeeded: User $COMMITTER_EMAIL completed training on the topics found in $SUMMARY, action is approved"
+          else
+            echo "::error:: Training verification failed: User $COMMITTER_EMAIL has not completed required training for $SUMMARY, action is refused"
+            VULNERABILITIES+="$vulnerability"$'\n'
+          fi
+
+        if [ $VULNERABILITIES != "" ]; then
+          echo "vulnerabilities=${VULNERABILITIES%$'\n'}" >> $GITHUB_OUTPUT
           exit 1
         fi
 
@@ -114,7 +135,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.sec_token }}
         COMMITTER_EMAIL: ${{ steps.extract.outputs.commiter_email }}
-        VULNERABILITY: ${{ steps.verify_training.outputs.vulnerability }}
+        VULNERABILITIES: ${{ steps.verify_training.outputs.vulnerabilities }}
       with:
         script: |
           try {
