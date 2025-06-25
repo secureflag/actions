@@ -143,18 +143,30 @@ runs:
         PR_NO: ${{ steps.extract.outputs.pr_no }}
         GH_TOKEN: ${{ inputs.sec_token }}
       run: |
-        # Generate comment body
-        BODY="### ❌ Merge Request Blocked"
-        BODY+="\n\n**User**: $COMMITTER_EMAIL"
-        BODY+="\n\nTo proceed, complete at least one lab for the following security category(ies):"
+        # Create a temporary file for the comment body
+        TEMP_FILE=$(mktemp)
         
-        while IFS= read -r vuln; do
-          [ -z "$vuln" ] && continue
-          encoded=$(echo "$vuln" | jq -Rr '@uri')
-          BODY+="\n- [$vuln](https://www.secureflag.com/go.html?type=search&c=$encoded)"
-        done <<< "$VULNERABILITIES"
+        # Start building the Markdown content
+        {
+          echo '### ❌ Merge Request Blocked'
+          echo
+          echo "**User**: ${COMMITTER_EMAIL}"
+          echo
+          echo "To proceed, complete at least one lab for the following security category(ies):"
+          
+          # Add each vulnerability as a list item with link
+          while IFS= read -r vuln; do
+            [ -z "$vuln" ] && continue
+            encoded=$(echo "$vuln" | jq -Rr '@uri')
+            echo "- [$vuln](https://www.secureflag.com/go.html?type=search&c=$encoded)"
+          done <<< "$VULNERABILITIES"
+          
+          echo
+          echo "ℹ️ Click a category to play a lab"
+        } > "$TEMP_FILE"
         
-        BODY+="\n\nℹ️ Click a category to play a lab"
+        # Post the comment using the file content
+        gh issue comment "$PR_NO" --body-file "$TEMP_FILE"
         
-        # Post comment
-        echo "$BODY" | gh issue comment $PR_NO --body-file -
+        # Clean up
+        rm "$TEMP_FILE"
