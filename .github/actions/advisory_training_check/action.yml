@@ -94,7 +94,7 @@ runs:
     # 3) Call SecureFlag API
     - name: Verify training
       id: verify_training
-      if: steps.check_sec_adv.outputs.advisory_summaries != ''
+      if: steps.check_sec_adv.outputs.advisory_map != ''
       shell: bash
       env:
         ADVISORY_MAP: ${{ steps.check_sec_adv.outputs.advisory_map }}
