@@ -73,7 +73,7 @@ runs:
           echo "Checking advisory: $GHSA_ID"
 
           RESPONSE=$(curl -s \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Authorization: Bearer ${{ inputs.sec_token }}" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/${{ inputs.target_repo }}/security-advisories/$GHSA_ID")
 
