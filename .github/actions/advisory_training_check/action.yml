@@ -159,13 +159,7 @@ runs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `### ❌ Merge Request Blocked
-
-**User**: ${process.env.COMMITTER_EMAIL}
-To proceed, complete at least one training lab in the following security categories:
-${trainingItems}
-
-ℹ️ Click a category above to play a lab`
+              body: `### ❌ Merge Request Blocked\n**User**: ${process.env.COMMITTER_EMAIL}\nTo proceed, complete at least one training lab in the following security categories:\n${trainingItems}\n\nℹ️ Click a category above to play a lab`
             });
           } catch (error) {
             core.error(`Failed to create comment: ${error}`);
