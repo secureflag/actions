@@ -117,16 +117,21 @@ runs:
           if [ "$result" = true ] || [ "$error" = true ];then
             echo "Training verification succeeded: User $COMMITTER_EMAIL completed training on the topics found in $SUMMARY, action is approved"
           else
+            echo "FAILED: $response"
             echo "::error:: Training verification failed: User $COMMITTER_EMAIL has not completed required training for $SUMMARY, action is refused"
             VULNERABILITIES+="$vulnerability"$'\n'
           fi
         done <<< "$ADVISORY_MAP"
 
-        echo $VULNERABILITIES
+        echo "Vulnerabilities: $VULNERABILITIES" #DEBUG
+
         if [ -n "$VULNERABILITIES" ]; then
-          echo "vulnerabilities=${VULNERABILITIES%$'\n'}" >> $GITHUB_OUTPUT
+          echo "vulnerabilities<<EOF" >> $GITHUB_OUTPUT
+          echo "${VULNERABILITIES%$'\n'}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
           exit 1
         fi
+
 
     # 4) Comment on PR if training fails
     - name: Add training required comment
