@@ -141,24 +141,35 @@ runs:
       env:
         COMMITTER_EMAIL: ${{ steps.extract.outputs.committer_email }}
         VULNERABILITIES: ${{ steps.verify_training.outputs.vulnerabilities }}
-        PR_No: ${{ steps.extract.outputs.pr_no }}
-        GH_TOKEN: ${{ inputs.sec_token }}
+        PR_NUMBER: ${{ steps.extract.outputs.pr_no }}
       with:
         script: |
+          const {Octokit} = require('@octokit/rest')
+          const octokit = new Octokit({auth: process.env.GITHUB_TOKEN})
+          
           try {
             // Split vulnerabilities by newline
             const vulns = process.env.VULNERABILITIES.split('\n')
-              .filter(v => v.trim().length > 0);
+              .filter(v => v.trim().length > 0)
             
-            // Generate training links for each
+            // Generate training links
             const trainingItems = vulns.map(v => {
-              const encoded = encodeURIComponent(v);
-              const url = `https://www.secureflag.com/go.html?type=search&c=${encoded}`;
-              return `- [${v}](${url})`;
-            }).join('\n');
+              const encoded = encodeURIComponent(v)
+              return `- [${v}](https://www.secureflag.com/go.html?type=search&c=${encoded})`
+            }).join('\n')
 
-            body="### ❌ Merge Request Blocked\n**User**: ${process.env.COMMITTER_EMAIL}\nTo proceed, complete at least one training lab in the following security categories:\n${trainingItems}\n\nℹ️ Click a category above to play a lab"
-            gh issue comment ${PR_No} --body $body
+            // Create comment
+            await octokit.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: process.env.PR_NUMBER,
+              body: `### ❌ Merge Request Blocked\n\n` +
+                    `**User**: ${process.env.COMMITTER_EMAIL}\n\n` +
+                    `To proceed, complete at least one lab for the following security category(ies):\n` +
+                    `${trainingItems}\n\n` +
+                    `ℹ️ Click a category to play a lab`
+            })
           } catch (error) {
-            core.error(`Failed to create comment: ${error}`);
+            core.error(`Failed to create comment: ${error}`)
+            core.setFailed(error.message)
           }
