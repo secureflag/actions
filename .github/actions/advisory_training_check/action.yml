@@ -81,31 +81,29 @@ runs:
 
           if [ -n "$SUMMARY" ]; then
             echo "Found advisory: $SUMMARY ($GHSA_ID)"
-            ADVISORY_SUMMARIES+="$SUMMARY($GHSA_ID)"$'\n'
+            ADVISORY_MAP+="$GHSA_ID|$SUMMARY"$'\n'
           else
             echo "::warning::Advisory $GHSA_ID not found"
           fi
         done
-        echo $ADVISORY_SUMMARIES
-        echo "advisory_summaries=${ADVISORY_SUMMARIES%$'\n'}" >> $GITHUB_OUTPUT
+        ADVISORY_MAP="${ADVISORY_MAP%$'\n'}"
+        echo "advisory_map<<EOF" >> $GITHUB_OUTPUT
+        echo "$ADVISORY_MAP" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
     # 3) Call SecureFlag API
     - name: Verify training
       id: verify_training
       if: steps.check_sec_adv.outputs.advisory_summaries != ''
       shell: bash
       env:
-        SUMMARY: ${{ steps.check_sec_adv.outputs.advisory_summaries }}
+        ADVISORY_MAP: ${{ steps.check_sec_adv.outputs.advisory_map }}
         COMMITTER_EMAIL: ${{ steps.extract.outputs.commiter_email }}
-        GHSA_ID: ${{ steps.extract.outputs.ghsa_ids }}
-
       run: |
-        IFS=$'\n' read -rd '' -a SUMMARY_ARRAY <<< "$SUMMARIES"
         VULNERABILITIES=""
+        while IFS='|' read -r GHSA_ID SUMMARY; do
+          echo "Verifying training for: $GHSA_ID ($SUMMARY)"
 
-        for sum_ghsa in "${SUMMARY_ARRAY[@]}"; do
-          echo "Verifying training for: $sum_ghsa"
-
-          SUMMARY=$(echo sum_ghsa | cut -d( -n0)
           response=$(curl -s \
             -H "Authorization: Bearer ${{ inputs.api_token }}" \
             -H "Content-Type: application/json" \
@@ -122,8 +120,10 @@ runs:
             echo "::error:: Training verification failed: User $COMMITTER_EMAIL has not completed required training for $SUMMARY, action is refused"
             VULNERABILITIES+="$vulnerability"$'\n'
           fi
+        done <<< "$ADVISORY_MAP"
 
-        if [ $VULNERABILITIES != "" ]; then
+        echo $VULNERABILITIES
+        if [ -n $VULNERABILITIES ]; then
           echo "vulnerabilities=${VULNERABILITIES%$'\n'}" >> $GITHUB_OUTPUT
           exit 1
         fi
