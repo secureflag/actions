@@ -135,7 +135,7 @@ runs:
 
     # 4) Comment on PR if training fails
     - name: Add training required comment
-      if: failure() && steps.verify_training.conclusion == 'failure' && github.event_name == 'pull_request'
+      if: failure() && steps.verify_training.conclusion == 'failure'
       uses: actions/github-script@v7
       env:
         GITHUB_TOKEN: ${{ inputs.sec_token }}
@@ -144,13 +144,28 @@ runs:
       with:
         script: |
           try {
-            const encodedVulnerability = encodeURIComponent(process.env.VULNERABILITY);
-            const trainingUrl = `https://www.secureflag.com/go.html?type=search&c=${encodedVulnerability}`;
+            // Split vulnerabilities by newline
+            const vulns = process.env.VULNERABILITIES.split('\n')
+              .filter(v => v.trim().length > 0);
+            
+            // Generate training links for each
+            const trainingItems = vulns.map(v => {
+              const encoded = encodeURIComponent(v);
+              const url = `https://www.secureflag.com/go.html?type=search&c=${encoded}`;
+              return `- [${v}](${url})`;
+            }).join('\n');
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `### ❌ Merge request blocked\n\n**User**: ${process.env.COMMITTER_EMAIL}\nMust complete at least one training lab in the security category "${process.env.VULNERABILITY}" to proceed.\nClick *[here](${trainingUrl})* to play a lab.`
+              body: `### ❌ Merge Request Blocked
+
+**User**: ${process.env.COMMITTER_EMAIL}
+To proceed, complete at least one training lab in the following security categories:
+${trainingItems}
+
+ℹ️ Click a category above to play a lab`
             });
           } catch (error) {
             core.error(`Failed to create comment: ${error}`);
