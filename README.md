@@ -14,9 +14,6 @@ name: Vulnerability Training Check
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   security-approval:
@@ -34,8 +31,12 @@ jobs:
 
 To run the action, set the following inputs:
 
-- `target_repo`: (Required) The full name of the repository (e.g., org/repo), usually `${{ github.repository }}`.
-- `sec_token`: (Required) GitHub token with permission to read repository security advisories.
+- `target_repo`: (Required) The full name of the repository (e.g., org/repo), auto-replaced by `${{ github.repository }}`.
+- `sec_token`: (Required) GitHub token with permission to:
+  - Read repository security advisories.
+  - Read the Pull Request's description
+  - Read the commits messages
+  - Create a comment in a Pull Request
 - `api_endpoint`: (Required) SecureFlag API endpoint URL.
 - `api_token`: (Required) API token to authenticate with SecureFlag.
 
