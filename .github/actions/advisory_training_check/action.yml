@@ -27,6 +27,8 @@ runs:
     - name: Find security reference
       id: extract
       shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.sec_token }}
       run: |
         range="${{ github.event.before }}..${{ github.event.after }}"
         COMMITTER_EMAIL=$(git log -1 --pretty=format:"%ce" ${{ github.event.after }})
