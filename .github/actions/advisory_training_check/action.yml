@@ -54,7 +54,7 @@ runs:
           xargs echo -n || echo "")
 
         echo "ghsa_ids=$GHSA_IDS" >> $GITHUB_OUTPUT
-        echo "commiter_email=$COMMITTER_EMAIL" >> $GITHUB_OUTPUT
+        echo "committer_email=$COMMITTER_EMAIL" >> $GITHUB_OUTPUT
         echo "Extracted GHSA IDs: $GHSA_IDS"
 
     # 2) Check target repo's advisories
@@ -98,7 +98,7 @@ runs:
       shell: bash
       env:
         ADVISORY_MAP: ${{ steps.check_sec_adv.outputs.advisory_map }}
-        COMMITTER_EMAIL: ${{ steps.extract.outputs.commiter_email }}
+        COMMITTER_EMAIL: ${{ steps.extract.outputs.committer_email }}
       run: |
         VULNERABILITIES=""
         while IFS='|' read -r GHSA_ID SUMMARY; do
@@ -123,7 +123,7 @@ runs:
         done <<< "$ADVISORY_MAP"
 
         echo $VULNERABILITIES
-        if [ -n $VULNERABILITIES ]; then
+        if [ -n "$VULNERABILITIES" ]; then
           echo "vulnerabilities=${VULNERABILITIES%$'\n'}" >> $GITHUB_OUTPUT
           exit 1
         fi
@@ -134,7 +134,7 @@ runs:
       uses: actions/github-script@v7
       env:
         GITHUB_TOKEN: ${{ inputs.sec_token }}
-        COMMITTER_EMAIL: ${{ steps.extract.outputs.commiter_email }}
+        COMMITTER_EMAIL: ${{ steps.extract.outputs.committer_email }}
         VULNERABILITIES: ${{ steps.verify_training.outputs.vulnerabilities }}
       with:
         script: |
