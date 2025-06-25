@@ -41,7 +41,7 @@ runs:
 
         PR_TITLE=$(echo "$PR_JSON" | jq -r '.[0].title')
         PR_BODY=$(echo "$PR_JSON" | jq -r '.[0].body')
-        PR_No=$$(echo "$PR_JSON" | jq -r '.[0].number')
+        PR_No=$(echo "$PR_JSON" | jq -r '.[0].number')
 
         gh pr view $PR_No --json commits
 
@@ -49,7 +49,7 @@ runs:
 
         GHSA_IDS=$(echo "$COMMIT_MESSAGES $PR_TITLE $PR_BODY" | grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' | uniq || echo "")
 
-        echo "ghsa_ids=$GHSA_IDS" >> $GITHUB_OUTPUT
+        echo "ghsa_ids=\"$GHSA_IDS\"" >> $GITHUB_OUTPUT
         echo "commiter_email=$COMMITTER_EMAIL" >> $GITHUB_OUTPUT
         echo "Extracted GHSA IDs: $GHSA_IDS"
 
