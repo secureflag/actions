@@ -158,12 +158,7 @@ runs:
             }).join('\n');
 
             body="### ❌ Merge Request Blocked\n**User**: ${process.env.COMMITTER_EMAIL}\nTo proceed, complete at least one training lab in the following security categories:\n${trainingItems}\n\nℹ️ Click a category above to play a lab"
-            gh api \
-              --method POST \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              /repos/${{ inputs.target_repo }}/issues/${PR_No}/comments \
-               -f "body=$body"
+            gh issue comment ${PR_No} --body $body
           } catch (error) {
             core.error(`Failed to create comment: ${error}`);
           }
