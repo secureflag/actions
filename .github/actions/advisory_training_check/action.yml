@@ -41,6 +41,10 @@ runs:
 
         PR_TITLE=$(echo "$PR_JSON" | jq -r '.[0].title')
         PR_BODY=$(echo "$PR_JSON" | jq -r '.[0].body')
+        PR_No=$$(echo "$PR_JSON" | jq -r '.[0].number')
+
+        gh pr view $PR_No --json commits
+
         echo -e "$PR_TITLE\n$PR_BODY\n$COMMIT_MESSAGES\n$COMMITTER_EMAIL" #DEBUG
 
         GHSA_IDS=$(echo "$COMMIT_MESSAGES $PR_TITLE $PR_BODY" | grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' | uniq || echo "")
