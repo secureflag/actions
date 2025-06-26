@@ -152,7 +152,7 @@ runs:
           echo
           echo "**User**: ${COMMITTER_EMAIL}"
           echo
-          echo "To proceed, complete at least one lab for the following security category(ies):"
+          echo "To proceed, complete at least one lab from the following security category(ies):"
           
           # Add each vulnerability as a list item with link
           while IFS= read -r vuln; do
@@ -160,9 +160,6 @@ runs:
             encoded=$(echo "$vuln" | jq -Rr '@uri')
             echo "- [$vuln](https://www.secureflag.com/go.html?type=search&c=$encoded)"
           done <<< "$VULNERABILITIES"
-          
-          echo
-          echo "ℹ️ Click a category to play a lab"
         } > "$TEMP_FILE"
         
         # Post the comment using the file content
