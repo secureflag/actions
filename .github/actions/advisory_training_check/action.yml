@@ -51,7 +51,7 @@ runs:
 
         #echo -e "$PR_TITLE\n$PR_BODY\n$COMMIT_MESSAGES\n$COMMITTER_EMAIL" #DEBUG
 
-        if [[] "$COMMITTER_EMAIL" == *users.noreply.github.com ]]
+        if [[ "$COMMITTER_EMAIL" == *users.noreply.github.com ]]
         then
           echo "The email address is private, skipping"
           GHSA_IDS=""
