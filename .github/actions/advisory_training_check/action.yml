@@ -51,11 +51,17 @@ runs:
 
         #echo -e "$PR_TITLE\n$PR_BODY\n$COMMIT_MESSAGES\n$COMMITTER_EMAIL" #DEBUG
 
-        GHSA_IDS=$(echo "$COMMIT_MESSAGES $PR_TITLE $PR_BODY" |
-          grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' |
-          sort -u |
-          tr '\n' ' ' |
-          xargs echo -n || echo "")
+        if [[ "$COMMITTER_EMAIL" == *users.noreply.github.com ]]
+        then
+          echo "The email address is private, skipping"
+          GHSA_IDS=""
+        else
+          GHSA_IDS=$(echo "$COMMIT_MESSAGES $PR_TITLE $PR_BODY" |
+            grep -oE 'GHSA-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}' |
+            sort -u |
+            tr '\n' ' ' |
+            xargs echo -n || echo "")
+        fi
 
         echo "pr_no=$PR_No" >> $GITHUB_OUTPUT
         echo "ghsa_ids=$GHSA_IDS" >> $GITHUB_OUTPUT
@@ -120,10 +126,10 @@ runs:
           vulnerability=$(echo "$response" | jq -r '.vulnerability')
 
           if [ "$result" = true ] || [ "$error" = true ];then
-            echo "Training verification succeeded: User $COMMITTER_EMAIL completed training on the topics found in $SUMMARY, action is approved"
+            echo "Training verification succeeded: User $COMMITTER_EMAIL completed training on \"$vulnerability\" found in \"$GHSA_ID\", action is approved"
           else
             echo "FAILED: $response"
-            echo "::error:: Training verification failed: User $COMMITTER_EMAIL has not completed required training for $SUMMARY, action is refused"
+            echo "::error:: Training verification failed: User $COMMITTER_EMAIL has not completed required training on \"$vulnerability\" found in \"$GHSA_ID\", action is refused"
             VULNERABILITIES+="$vulnerability"$'\n'
           fi
         done <<< "$ADVISORY_MAP"
