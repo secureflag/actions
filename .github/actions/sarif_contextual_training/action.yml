@@ -4,7 +4,7 @@ author: SecureFlag
 
 inputs:
   sarif_path:
-    description: 'The SARIF file or directory of SARIF files to be augmented with SecureFlag training links'
+    description: 'The directory of SARIF files to be augmented with SecureFlag training links'
     required: true
     default: '../results'
 
