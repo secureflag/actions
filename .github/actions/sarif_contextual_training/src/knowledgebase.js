@@ -60,7 +60,7 @@ function formatKnowledgeBaseMarkdown(markdown) {
   const frontmatterRegex = /---.*?---/s;
   markdown = markdown.replace(
     frontmatterRegex,
-    '<p align="left" width="60%"><img src="https://user-images.githubusercontent.com/87369283/128739726-f334fbf2-c531-4972-a175-547485ba2322.png" width="50%"></p>',
+    '<p align="left" width="60%"><img src="https://user-images.githubusercontent.com/87369283/128739726-f334fbf2-c531-4972-a175-547485ba2322.png" width="30%"></p>',
   );
 
   const tocRegex = /^1. TOC\n{:toc}$/m;
@@ -72,8 +72,11 @@ function formatKnowledgeBaseMarkdown(markdown) {
   const inlineImageRegex = /^!\[image\]\(data:image.*\)/m;
   markdown = markdown.replace(inlineImageRegex, "");
 
-  const playLabsRegex = /(<span>Play Labs on this vulnerability)/;
+  const playLabsRegex = /(<span\s?.*?>Play Labs on this vulnerability with SecureFlag!<\/span>)/;
   markdown = markdown.replace(playLabsRegex, "<br>$1");
+
+  const playLabsImgRegex = /(alt="Play SecureFlag")/;
+  markdown = markdown.replace(playLabsImgRegex, "$1 width=\"20%\"");
 
   const collapsibleRegex = /(## Description.+?)(#+ \w+)/s;
   const collapsibleText = "Read more";
