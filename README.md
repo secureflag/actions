@@ -1,43 +1,8 @@
-# SecureFlag Training GitHub Action
+# SecureFlag GitHub Actions
 
-This GitHub Action helps enforce secure development practices by checking whether contributors have completed relevant security training.
+This is a collection of SecureFlag's GitHub Actions for integrating our hands-on virtual labs and Knowledge Base articles into your CI/CD pipelines and GitHub experience.
 
-When a Pull Request is submitted or updated, the action looks for references to existing repos' Security Advisories in commit messages or the pull request description, and verifies if the author has completed the required SecureFlag training related to those advisories.
+## Actions
 
-## How to Use
-
-Add the following to your workflow file (e.g., `.github/workflows/security-check.yml`):
-
-```yaml
-name: Vulnerability Training Check
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  security-approval:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: secureflag/actions/.github/actions/advisory_training_check@main
-        with:
-          target_repo: ${{ github.repository }}
-          sec_token: ${{ secrets.SEC_TOKEN }}
-          api_endpoint: ${{ secrets.API_ENDPOINT }}
-          api_token: ${{ secrets.API_TOKEN }}
-```
-
-## Required Variables
-
-To run the action, set the following inputs:
-
-- `target_repo`: (Required) The full name of the repository (e.g., org/repo), auto-replaced by `${{ github.repository }}`.
-- `sec_token`: (Required) GitHub token with permission to:
-  - Read repository security advisories.
-  - Read the Pull Request's description
-  - Read the commits messages
-  - Create a comment in a Pull Request
-- `api_endpoint`: (Required) SecureFlag API endpoint URL.
-- `api_token`: (Required) API token to authenticate with SecureFlag.
-
-Store all sensitive values as GitHub Secrets in your repository or organization.
+- [`advisory_training_check`](https://github.com/secureflag/actions/blob/main/.github/actions/advisory_training_check/README.md): Help enforce secure development practices by checking whether contributors have completed relevant security training.
+- [`sarif_contextual_training`](https://github.com/secureflag/actions/blob/main/.github/actions/sarif_contextual_training/README.md): Augment Code Scanning Alerts by linking to relevant labs and articles from the SecureFlag Knowledge Base.
