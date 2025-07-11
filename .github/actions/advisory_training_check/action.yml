@@ -36,7 +36,7 @@ runs:
           "https://api.github.com/repos/${{ inputs.target_repo }}/commits/${{ github.sha }}")
         COMMITTER_EMAIL=$(echo "$RESPONSE" | jq -r '.commit.author.email')
 
-        MAX_RETRIES=3
+        MAX_RETRIES=10
         RETRY_DELAY=5
         PR_JSON=""
         for ((i=1; i<=$MAX_RETRIES; i++)); do
