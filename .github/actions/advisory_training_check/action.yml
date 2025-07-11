@@ -33,7 +33,7 @@ runs:
         RESPONSE=$(curl -sSL \
           -H "Authorization: Bearer $GH_TOKEN" \
           -H "Accept: application/vnd.github+json" \
-          "https://api.github.com/repos/${{ github.repository }}/commits/${{ github.sha }}")
+          "https://api.github.com/repos/${{ inputs.target_repo }}/commits/${{ github.sha }}")
         COMMITTER_EMAIL=$(echo "$RESPONSE" | jq -r '.commit.author.email')
 
         MAX_RETRIES=3
@@ -47,7 +47,8 @@ runs:
             https://api.github.com/repos/${{ inputs.target_repo }}/commits/${{ github.sha }}/pulls)
 
           echo "PR_JSON (attempt $i): $PR_JSON"
-          if [ -n "$PR_JSON" ] && [ "$PR_JSON" != "[]" ]; then
+          TRIMMED_JSON=$(echo "$PR_JSON" | tr -d '[:space:]')
+          if [ -n "$PR_JSON" ] && [ "$TRIMMED_JSON" != "[]" ]; then
             break
           fi
 
