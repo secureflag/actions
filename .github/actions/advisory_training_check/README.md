@@ -2,7 +2,12 @@
 
 This GitHub Action helps enforce secure development practices by checking whether contributors have completed relevant security training.
 
-When a Pull Request is submitted or updated, the action looks for references to existing repos' Security Advisories in commit messages or the pull request description, and verifies if the author has completed the required SecureFlag training related to those advisories.
+When a Pull Request (PR) is submitted or updated, the action:
+- Looks for references to existing repos' Security Advisories (GHSA) in commit messages, pull request title or description and fetches the GHSA title(s).
+- Gets the committer's email from the PR.
+- Queries Secureflag's database with the above email and the GHSA title(s) to verify if the author has completed the required SecureFlag training related to those advisories.
+If the author hasn't passed training for any of advisories, the action creates a PR comment with information and the URL(s) for the required training and the PR is blocked.
+When the training is completed, the action can be re-run to unblock the PR.
 
 ## How to Use
 
@@ -13,7 +18,9 @@ name: Vulnerability Training Check
 
 on:
   push:
-    branches: [main]
+    branches:
+      - '*'
+      - '!main'
 
 jobs:
   security-approval:
