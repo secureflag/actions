@@ -2,6 +2,8 @@
 
 This directory contains a `commit-msg` Git hook that enforces SecureFlag vulnerability training compliance for commits referencing GitHub Security Advisories (GHSA).
 
+![Hook example](image.png "Hook example")
+
 ## What does the `commit-msg` hook do?
 
 - **Scans the commit message** for any GHSA IDs (e.g., `GHSA-xxxx-xxxx-xxxx`).
