@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# commit-msg hook: Checks if commit message contains GHSA IDs.sh
+# commit-msg hook: Checks if commit message contains GHSA IDs.
 
 # CONFIGURATION: Set these as environment variables or edit here
 REMOTE="origin"                # Git remote name (default: origin)
