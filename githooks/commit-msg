@@ -12,7 +12,7 @@ SECUREFLAG_API_ENDPOINT="${SECUREFLAG_API_ENDPOINT:-https://api.secureflag.com/r
 
 # Ensure required tools are available
 if ! command -v jq &> /dev/null; then
-  echo "[secureflag-advisory-training] ERROR: skipping training verification, jq is required but not installed."
+  echo "[secureflag-advisory-training] WARNING: skipping training verification, jq is required but not installed."
   exit 0
 fi
 
@@ -95,11 +95,13 @@ while IFS='|' read -r GHSA_ID SUMMARY; do
   
   if [[ "$error" == "true" ]]; then
     if [[ "$errorMsg" == "EmptyUser" ]]; then
-      echo "[secureflag-advisory-training] ERROR: \"$COMMITTER_EMAIL\" is not a valid user in SecureFlag. Please ensure your email is registered, or export COMMITTER_EMAIL with a valid SecureFlag user email."
-      exit 1
+      echo "[secureflag-advisory-training] WARNING: skipping training verification, \"$COMMITTER_EMAIL\" is not a valid user in SecureFlag. Please ensure your email is registered, or export COMMITTER_EMAIL with a valid SecureFlag user email."
+    elif [[ "$errorMsg" == "EmptyCategory" ]]; then
+      # If the category is empty, it means that the summary of the GHSA advisory wasn't descriptive enough to determine the vulnerability type
+      echo "[secureflag-advisory-training] WARNING: skipping training verification, can't determine vulnerability type for $GHSA_ID. Please ensure the advisory summary is descriptive enough."
     else
       # If it's a generic API error, just log it
-      echo "[secureflag-advisory-training] ERROR: skipping training verification, API returned $errorMsg"
+      echo "[secureflag-advisory-training] WARNING: skipping training verification, API returned $errorMsg"
     fi
   elif [[ "$result" == "true" ]]; then
     echo "[secureflag-advisory-training] Training verification succeeded: \"$COMMITTER_EMAIL\" completed training on $vulnerability ($GHSA_ID)"
