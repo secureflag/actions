@@ -115,7 +115,7 @@ if [[ -n "$VULNERABILITIES" ]]; then
   while IFS= read -r vuln; do
     [[ -z "$vuln" ]] && continue
     encoded=$(echo "$vuln" | jq -Rr '@uri')
-    echo "- $vuln (https://www.secureflag.com/go.html?type=search&c=$encoded)"
+    echo "- $vuln (https://www.secureflag.com/go.html?type=search&q=$encoded)"
   done <<< "$VULNERABILITIES"
   exit 1
 fi
