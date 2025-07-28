@@ -10,7 +10,7 @@ inputs:
     required: true
   api_endpoint:
     description: 'SecureFlag API endpoint'
-    required: true
+    required: false
   api_token:
     description: 'SecureFlag API token'
     required: true
@@ -127,6 +127,7 @@ runs:
         ADVISORY_MAP: ${{ steps.check_sec_adv.outputs.advisory_map }}
         COMMITTER_EMAIL: ${{ steps.extract.outputs.committer_email }}
       run: |
+        DEFAULT_API_ENDPOINT="https://api.secureflag.com/rest/management/v2/users/hasCompletedTraining"
         VULNERABILITIES=""
         while IFS='|' read -r GHSA_ID SUMMARY; do
           echo "Verifying training for: $GHSA_ID ($SUMMARY)"
@@ -135,7 +136,7 @@ runs:
             -H "Authorization: Bearer ${{ inputs.api_token }}" \
             -H "Content-Type: application/json" \
             -d "{\"issueTitle\":\"$SUMMARY\",\"user\":\"$COMMITTER_EMAIL\",\"days\":\"365\"}" \
-            ${{ inputs.api_endpoint }})
+            ${{ inputs.api_endpoint || $DEFAULT_API_ENDPOINT }})
 
           result=$(echo "$response" | jq -r '.result')
           error=$(echo "$response" | jq -r '.error')
@@ -184,7 +185,7 @@ runs:
           while IFS= read -r vuln; do
             [ -z "$vuln" ] && continue
             encoded=$(echo "$vuln" | jq -Rr '@uri')
-            echo "- [$vuln](https://www.secureflag.com/go.html?type=search&c=$encoded)"
+            echo "- [$vuln](https://www.secureflag.com/go.html?type=search&q=$encoded)"
           done <<< "$VULNERABILITIES"
         } > "$TEMP_FILE"
         
