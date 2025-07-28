@@ -128,6 +128,7 @@ runs:
         COMMITTER_EMAIL: ${{ steps.extract.outputs.committer_email }}
       run: |
         DEFAULT_API_ENDPOINT="https://api.secureflag.com/rest/management/v2/users/hasCompletedTraining"
+        API_ENDPOINT=${{ inputs.api_endpoint || DEFAULT_API_ENDPOINT }}
         VULNERABILITIES=""
         while IFS='|' read -r GHSA_ID SUMMARY; do
           echo "Verifying training for: $GHSA_ID ($SUMMARY)"
@@ -136,7 +137,7 @@ runs:
             -H "Authorization: Bearer ${{ inputs.api_token }}" \
             -H "Content-Type: application/json" \
             -d "{\"issueTitle\":\"$SUMMARY\",\"user\":\"$COMMITTER_EMAIL\",\"days\":\"365\"}" \
-            ${{ inputs.api_endpoint || $DEFAULT_API_ENDPOINT }})
+            "$API_ENDPOINT")
 
           result=$(echo "$response" | jq -r '.result')
           error=$(echo "$response" | jq -r '.error')
