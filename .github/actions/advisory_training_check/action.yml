@@ -126,9 +126,9 @@ runs:
       env:
         ADVISORY_MAP: ${{ steps.check_sec_adv.outputs.advisory_map }}
         COMMITTER_EMAIL: ${{ steps.extract.outputs.committer_email }}
+        PROVIDED_API_ENDPOINT: ${{ inputs.api_endpoint }}
       run: |
-        DEFAULT_API_ENDPOINT="https://api.secureflag.com/rest/management/v2/users/hasCompletedTraining"
-        API_ENDPOINT="${{ inputs.api_endpoint || DEFAULT_API_ENDPOINT }}"
+        API_ENDPOINT=${PROVIDED_API_ENDPOINT:-"https://api.secureflag.com/rest/management/v2/users/hasCompletedTraining"}
         VULNERABILITIES=""
         while IFS='|' read -r GHSA_ID SUMMARY; do
           echo "Verifying training for: $GHSA_ID ($SUMMARY)"
