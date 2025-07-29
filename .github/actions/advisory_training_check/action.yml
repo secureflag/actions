@@ -141,7 +141,9 @@ runs:
         PR_NO: ${{ steps.extract.outputs.pr_no }}
         COMMITTER_EMAIL: ${{ steps.extract.outputs.committer_email }}
         PROVIDED_API_ENDPOINT: ${{ inputs.api_endpoint }}
+        GH_TOKEN: ${{ inputs.gh_token }}
       run: |
+        # Call SecureFlag API
         API_ENDPOINT=${PROVIDED_API_ENDPOINT:-"https://api.secureflag.com/rest/management/v2/users/hasCompletedTraining"}
         VULNERABILITIES=""
         while IFS='|' read -r GHSA_ID SUMMARY; do
@@ -166,7 +168,7 @@ runs:
               message="⚠️ Skipping training verification, can't determine vulnerability type for $GHSA_ID. Please ensure the advisory summary is descriptive enough."
             else
               # If it's a generic API error, just log it
-              message="⚠️ skipping training verification, API returned $errorMsg"
+              message="⚠️ Skipping training verification, API returned $errorMsg"
             fi
             echo $message
             # Post the comment using the file content
