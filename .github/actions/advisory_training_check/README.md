@@ -30,7 +30,7 @@ jobs:
       - uses: secureflag/actions/.github/actions/advisory_training_check@main
         with:
           target_repo: ${{ github.repository }}
-          sec_token: ${{ secrets.SEC_TOKEN }}
+          gh_token: ${{ secrets.SEC_TOKEN }}
           api_endpoint: ${{ secrets.API_ENDPOINT }}
           api_token: ${{ secrets.API_TOKEN }}
 ```
