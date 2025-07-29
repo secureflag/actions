@@ -91,10 +91,12 @@ runs:
       shell: bash
       env:
         GHSA_IDS: ${{ steps.extract.outputs.ghsa_ids }}
+        TARGET_REPO: ${{ inputs.target_repo }}
       run: |
         # Convert space-separated IDs to array
         IFS=' ' read -ra GHSA_ARRAY <<< "$GHSA_IDS"
 
+        # For each GHSA ID, check advisory via GitHub API
         ADVISORY_SUMMARIES=""
         for GHSA_ID in "${GHSA_ARRAY[@]}"; do
           echo "Checking advisory: $GHSA_ID"
@@ -102,15 +104,22 @@ runs:
           RESPONSE=$(curl -s \
             -H "Authorization: Bearer ${{ inputs.sec_token }}" \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ inputs.target_repo }}/security-advisories/$GHSA_ID")
+            "https://api.github.com/repos/${TARGET_REPO}/security-advisories/$GHSA_ID")
+
+          # Check status field in response
+          RESPONSE_STATUS=$(echo "$RESPONSE" | jq -r '.status')
+          if [[ "$RESPONSE_STATUS" == "403" ]]; then
+            echo "ERROR: Access denied to security advisory $GHSA_ID. Check your GITHUB_TOKEN permissions."
+          elif [[ "$RESPONSE_STATUS" == "404" ]]; then
+            echo "ERROR: Advisory $GHSA_ID not found in repository $TARGET_REPO."
+          fi
 
           SUMMARY=$(echo "$RESPONSE" | jq -r '.summary // empty')
-
           if [ -n "$SUMMARY" ]; then
             echo "Found advisory: $SUMMARY ($GHSA_ID)"
             ADVISORY_MAP+="$GHSA_ID|$SUMMARY"$'\n'
           else
-            echo "::warning::Advisory $GHSA_ID not found"
+            echo "WARNING: Advisory $GHSA_ID not found in $TARGET_REPO"
           fi
         done
         ADVISORY_MAP="${ADVISORY_MAP%$'\n'}"
@@ -125,6 +134,7 @@ runs:
       shell: bash
       env:
         ADVISORY_MAP: ${{ steps.check_sec_adv.outputs.advisory_map }}
+        PR_NO: ${{ steps.extract.outputs.pr_no }}
         COMMITTER_EMAIL: ${{ steps.extract.outputs.committer_email }}
         PROVIDED_API_ENDPOINT: ${{ inputs.api_endpoint }}
       run: |
@@ -141,13 +151,26 @@ runs:
 
           result=$(echo "$response" | jq -r '.result')
           error=$(echo "$response" | jq -r '.error')
+          errorMsg=$(echo "$response" | jq -r '.errorMsg')
           vulnerability=$(echo "$response" | jq -r '.vulnerability')
 
-          if [ "$result" = true ] || [ "$error" = true ];then
-            echo "Training verification succeeded: User $COMMITTER_EMAIL completed training on \"$vulnerability\" found in \"$GHSA_ID\", action is approved"
+          if [[ "$error" == "true" ]]; then
+            if [[ "$errorMsg" == "EmptyUser" ]]; then
+              message="⚠️ Skipping training verification, \"$COMMITTER_EMAIL\" is not a valid user in SecureFlag. Please ensure your email is registered."
+            elif [[ "$errorMsg" == "EmptyCategory" ]]; then
+              # If the category is empty, it means that the summary of the GHSA advisory wasn't descriptive enough to determine the vulnerability type
+              message="⚠️ Skipping training verification, can't determine vulnerability type for $GHSA_ID. Please ensure the advisory summary is descriptive enough."
+            else
+              # If it's a generic API error, just log it
+              message="⚠️ skipping training verification, API returned $errorMsg"
+            fi
+            echo $message
+            # Post the comment using the file content
+            gh issue comment "$PR_NO" --body "$message"
+          elif [[ "$result" == "true" ]]; then
+            echo "Training verification succeeded: \"$COMMITTER_EMAIL\" completed training on $vulnerability ($GHSA_ID)"
           else
-            echo "FAILED: $response"
-            echo "::error:: Training verification failed: User $COMMITTER_EMAIL has not completed required training on \"$vulnerability\" found in \"$GHSA_ID\", action is refused"
+            echo "Training verification failed: \"$COMMITTER_EMAIL\" has not completed required training on $vulnerability ($GHSA_ID)"
             VULNERABILITIES+="$vulnerability"$'\n'
           fi
         done <<< "$ADVISORY_MAP"
