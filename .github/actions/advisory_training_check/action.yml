@@ -70,7 +70,7 @@ runs:
         #echo $COMMITS_JSON
         if [[ "$COMMITTER_EMAIL" == *users.noreply.github.com ]]
         then
-          echo "Warning: The email address is private, skipping"
+          echo "⚠️ The email address is private, skipping"
           GHSA_IDS=""
         else
           GHSA_IDS=$(echo "$COMMIT_MESSAGES $PR_TITLE $PR_BODY" |
@@ -112,10 +112,10 @@ runs:
           # Check status field in response
           RESPONSE_STATUS=$(echo "$RESPONSE" | jq -r '.status')
           if [[ "$RESPONSE_STATUS" == "403" ]]; then
-            echo "Error: Access denied to security advisory $GHSA_ID. Check your GITHUB_TOKEN permissions."
+            echo "❌ Access denied to security advisory $GHSA_ID. Check your GITHUB_TOKEN permissions."
             echo $RESPONSE
           elif [[ "$RESPONSE_STATUS" == "404" ]]; then
-            echo "Error: Advisory $GHSA_ID not found in repository $TARGET_REPO."
+            echo "❌ Advisory $GHSA_ID not found in repository $TARGET_REPO."
           fi
 
           SUMMARY=$(echo "$RESPONSE" | jq -r '.summary // empty')
@@ -123,7 +123,7 @@ runs:
             echo "Found advisory: $SUMMARY ($GHSA_ID)"
             ADVISORY_MAP+="$GHSA_ID|$SUMMARY"$'\n'
           else
-            echo "Warning: Advisory $GHSA_ID not found in $TARGET_REPO"
+            echo "⚠️ Advisory $GHSA_ID not found in $TARGET_REPO"
           fi
         done
         ADVISORY_MAP="${ADVISORY_MAP%$'\n'}"
@@ -162,13 +162,13 @@ runs:
 
           if [[ "$error" == "true" ]]; then
             if [[ "$errorMsg" == "EmptyUser" ]]; then
-              message="Warning: Skipping training verification, \"$COMMITTER_EMAIL\" is not a valid user in SecureFlag. Please ensure your email is registered."
+              message="⚠️ Skipping training verification, \"$COMMITTER_EMAIL\" is not a valid user in SecureFlag. Please ensure your email is registered."
             elif [[ "$errorMsg" == "EmptyCategory" ]]; then
               # If the category is empty, it means that the summary of the GHSA advisory wasn't descriptive enough to determine the vulnerability type
-              message="Warning: Skipping training verification, can't determine vulnerability type for $GHSA_ID. Please ensure the advisory summary is descriptive enough."
+              message="⚠️ Skipping training verification, can't determine vulnerability type for $GHSA_ID. Please ensure the advisory summary is descriptive enough."
             else
               # If it's a generic API error, just log it
-              message="Warning: Skipping training verification, API returned $errorMsg"
+              message="⚠️ Skipping training verification, API returned $errorMsg"
             fi
             echo $message
             # Post the comment using the file content
