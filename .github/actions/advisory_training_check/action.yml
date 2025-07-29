@@ -162,13 +162,13 @@ runs:
 
           if [[ "$error" == "true" ]]; then
             if [[ "$errorMsg" == "EmptyUser" ]]; then
-              message="⚠️ Skipping training verification, \"$COMMITTER_EMAIL\" is not a valid user in SecureFlag. Please ensure your email is registered."
+              message="Warning: Skipping training verification, \"$COMMITTER_EMAIL\" is not a valid user in SecureFlag. Please ensure your email is registered."
             elif [[ "$errorMsg" == "EmptyCategory" ]]; then
               # If the category is empty, it means that the summary of the GHSA advisory wasn't descriptive enough to determine the vulnerability type
-              message="⚠️ Skipping training verification, can't determine vulnerability type for $GHSA_ID. Please ensure the advisory summary is descriptive enough."
+              message="Warning: Skipping training verification, can't determine vulnerability type for $GHSA_ID. Please ensure the advisory summary is descriptive enough."
             else
               # If it's a generic API error, just log it
-              message="⚠️ Skipping training verification, API returned $errorMsg"
+              message="Warning: Skipping training verification, API returned $errorMsg"
             fi
             echo $message
             # Post the comment using the file content
