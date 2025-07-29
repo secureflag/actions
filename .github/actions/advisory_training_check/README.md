@@ -12,7 +12,7 @@ When the training is completed, the action can be re-run to unblock the PR.
 
 ## How to Use
 
-Add the following to your workflow file (e.g., `.github/workflows/security-check.yml`):
+### Add the following snippet to your workflow file (e.g., `.github/workflows/security-check.yml`):
 
 ```yaml
 name: Vulnerability Training Check
@@ -35,17 +35,27 @@ jobs:
           api_token: ${{ secrets.API_TOKEN }}
 ```
 
-## Required Variables
+#### Required Variables
 
 To run the action, set the following inputs:
 
-- `target_repo`: (Required) The full name of the repository (e.g., org/repo), auto-replaced by `${{ github.repository }}`.
-- `sec_token`: (Required) GitHub token with permission to:
+- `target_repo`: The full name of the repository (e.g., org/repo). `${{ github.repository }}` sets the current org/repo
+- `gh_token`: (Required) GitHub token with permission to:
   - Read repository security advisories.
   - Read the Pull Request's description
   - Read the commits messages
   - Create a comment in a Pull Request
-- `api_endpoint`: (Required) SecureFlag API endpoint URL.
+- `api_endpoint`: SecureFlag API endpoint URL.
 - `api_token`: (Required) API token to authenticate with SecureFlag.
+
+### Set Branch Protection rule to enforce blocking of the Pull Request
+Repo Settings
+-> Branches
+-> Add Branch protection rule
+  -> Set branch name pattern (eg. "main")
+  -> Select "Require status checks to pass before merging".
+  -> Select "Require branches to be up to date before merging"
+  -> Below that, set "security-approval" as Status Check 
+-> Save
 
 Store all sensitive values as GitHub Secrets in your repository or organization.
