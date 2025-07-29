@@ -5,7 +5,7 @@ inputs:
     description: 'Repository to check advisories in (format: owner/repo)'
     required: true
     default: ${{ github.repository }}
-  sec_token:
+  gh_token:
     description: 'GitHub PAT with security advisory read access'
     required: true
   api_endpoint:
@@ -28,24 +28,24 @@ runs:
       id: extract
       shell: bash
       env:
-        GH_TOKEN: ${{ inputs.sec_token }}
+        GH_TOKEN: ${{ inputs.gh_token }}
+        TARGET_REPO: ${{ inputs.target_repo }}
       run: |
         #Extract GHSA IDs and committer email
-        RESPONSE=$(curl -sSL \
-          -H "Authorization: Bearer $GH_TOKEN" \
-          -H "Accept: application/vnd.github+json" \
-          "https://api.github.com/repos/${{ inputs.target_repo }}/commits/${{ github.sha }}")
+        RESPONSE=$((gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${TARGET_REPO}/commits/${{ github.sha }})
         COMMITTER_EMAIL=$(echo "$RESPONSE" | jq -r '.commit.author.email')
 
         MAX_RETRIES=10
         RETRY_DELAY=5
         PR_JSON=""
         for ((i=1; i<=$MAX_RETRIES; i++)); do
-          PR_JSON=$(curl -sSL \
+          PR_JSON=$(gh api \
             -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ inputs.sec_token }}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/${{ inputs.target_repo }}/commits/${{ github.sha }}/pulls)
+            /repos/${TARGET_REPO}/commits/${{ github.sha }}/pulls)
 
           #echo "PR_JSON (attempt $i): $PR_JSON"
           TRIMMED_JSON=$(echo "$PR_JSON" | tr -d '[:space:]')
@@ -70,7 +70,7 @@ runs:
         #echo $COMMITS_JSON
         if [[ "$COMMITTER_EMAIL" == *users.noreply.github.com ]]
         then
-          echo "The email address is private, skipping"
+          echo "Warning: The email address is private, skipping"
           GHSA_IDS=""
         else
           GHSA_IDS=$(echo "$COMMIT_MESSAGES $PR_TITLE $PR_BODY" |
@@ -93,7 +93,7 @@ runs:
       env:
         GHSA_IDS: ${{ steps.extract.outputs.ghsa_ids }}
         TARGET_REPO: ${{ inputs.target_repo }}
-        GH_TOKEN: ${{ inputs.sec_token }}
+        GH_TOKEN: ${{ inputs.gh_token }}
       run: |
         # Check target repo's advisories
         # Convert space-separated IDs to array
@@ -112,10 +112,10 @@ runs:
           # Check status field in response
           RESPONSE_STATUS=$(echo "$RESPONSE" | jq -r '.status')
           if [[ "$RESPONSE_STATUS" == "403" ]]; then
-            echo "ERROR: Access denied to security advisory $GHSA_ID. Check your GITHUB_TOKEN permissions."
+            echo "Error: Access denied to security advisory $GHSA_ID. Check your GITHUB_TOKEN permissions."
             echo $RESPONSE
           elif [[ "$RESPONSE_STATUS" == "404" ]]; then
-            echo "ERROR: Advisory $GHSA_ID not found in repository $TARGET_REPO."
+            echo "Error: Advisory $GHSA_ID not found in repository $TARGET_REPO."
           fi
 
           SUMMARY=$(echo "$RESPONSE" | jq -r '.summary // empty')
@@ -123,7 +123,7 @@ runs:
             echo "Found advisory: $SUMMARY ($GHSA_ID)"
             ADVISORY_MAP+="$GHSA_ID|$SUMMARY"$'\n'
           else
-            echo "WARNING: Advisory $GHSA_ID not found in $TARGET_REPO"
+            echo "Warning: Advisory $GHSA_ID not found in $TARGET_REPO"
           fi
         done
         ADVISORY_MAP="${ADVISORY_MAP%$'\n'}"
@@ -196,7 +196,7 @@ runs:
         COMMITTER_EMAIL: ${{ steps.extract.outputs.committer_email }}
         VULNERABILITIES: ${{ steps.verify_training.outputs.vulnerabilities }}
         PR_NO: ${{ steps.extract.outputs.pr_no }}
-        GH_TOKEN: ${{ inputs.sec_token }}
+        GH_TOKEN: ${{ inputs.gh_token }}
       run: |
         # Create a temporary file for the comment body
         TEMP_FILE=$(mktemp)
