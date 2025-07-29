@@ -10,8 +10,8 @@ When a Pull Request (PR) is submitted or updated, the action:
 
 When the training is completed, the action can be re-run to unblock the PR.
 
-## How to Use
 
+## How to Use
 ### Add the following snippet to your workflow file
 (e.g., `.github/workflows/security-check.yml`)
 
@@ -46,16 +46,15 @@ To run the action, set the following inputs:
   - Read the commits messages
   - Create a comment in a Pull Request
 - `api_endpoint`: SecureFlag API endpoint URL.
-- `api_token`: (Required) API token to authenticate with SecureFlag.
+- `api_token`: (Required) API token to authenticate with SecureFlag.  
+Store all sensitive values as GitHub Secrets in your repository or organization.
 
 ### Set Branch Protection rule to enforce blocking of the Pull Request
-Repo Settings
--> Branches
--> Add Branch protection rule
-  -> Set branch name pattern (eg. "main")
-  -> Select "Require status checks to pass before merging".
-  -> Select "Require branches to be up to date before merging"
-  -> Below that, set "security-approval" as Status Check 
--> Save
-
-Store all sensitive values as GitHub Secrets in your repository or organization.
+- Repo Settings
+- Branches
+- Add Branch protection rule
+  - Set branch name pattern (eg. "main")
+  - Select "Require status checks to pass before merging".
+  - Select "Require branches to be up to date before merging"
+  - Below that, set "security-approval" as Status Check 
+- Save
