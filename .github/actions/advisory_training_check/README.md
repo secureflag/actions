@@ -12,7 +12,8 @@ When the training is completed, the action can be re-run to unblock the PR.
 
 ## How to Use
 
-### Add the following snippet to your workflow file (e.g., `.github/workflows/security-check.yml`):
+### Add the following snippet to your workflow file
+(e.g., `.github/workflows/security-check.yml`)
 
 ```yaml
 name: Vulnerability Training Check
@@ -36,7 +37,6 @@ jobs:
 ```
 
 #### Required Variables
-
 To run the action, set the following inputs:
 
 - `target_repo`: The full name of the repository (e.g., org/repo). `${{ github.repository }}` sets the current org/repo
