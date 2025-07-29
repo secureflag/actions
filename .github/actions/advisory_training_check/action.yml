@@ -6,7 +6,7 @@ inputs:
     required: true
     default: ${{ github.repository }}
   gh_token:
-    description: 'GitHub PAT with security advisory read access'
+    description: 'GITHUB_TOKEN/PAT with proper permissions'
     required: true
   api_endpoint:
     description: 'SecureFlag API endpoint'
