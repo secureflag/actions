@@ -92,6 +92,7 @@ runs:
       env:
         GHSA_IDS: ${{ steps.extract.outputs.ghsa_ids }}
         TARGET_REPO: ${{ inputs.target_repo }}
+        GH_TOKEN: ${{ inputs.sec_token }}
       run: |
         # Convert space-separated IDs to array
         IFS=' ' read -ra GHSA_ARRAY <<< "$GHSA_IDS"
@@ -101,15 +102,16 @@ runs:
         for GHSA_ID in "${GHSA_ARRAY[@]}"; do
           echo "Checking advisory: $GHSA_ID"
 
-          RESPONSE=$(curl -s \
-            -H "Authorization: Bearer ${{ inputs.sec_token }}" \
+          RESPONSE=$(gh api \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${TARGET_REPO}/security-advisories/$GHSA_ID")
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${TARGET_REPO}/security-advisories/$GHSA_ID")
 
           # Check status field in response
           RESPONSE_STATUS=$(echo "$RESPONSE" | jq -r '.status')
           if [[ "$RESPONSE_STATUS" == "403" ]]; then
             echo "ERROR: Access denied to security advisory $GHSA_ID. Check your GITHUB_TOKEN permissions."
+            echo $RESPONSE
           elif [[ "$RESPONSE_STATUS" == "404" ]]; then
             echo "ERROR: Advisory $GHSA_ID not found in repository $TARGET_REPO."
           fi
