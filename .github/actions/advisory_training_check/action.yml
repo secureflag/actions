@@ -200,6 +200,7 @@ runs:
         PR_NO: ${{ steps.extract.outputs.pr_no }}
         GH_TOKEN: ${{ inputs.gh_token }}
       run: |
+        # Add comment to the Merge Request
         # Create a temporary file for the comment body
         TEMP_FILE=$(mktemp)
         

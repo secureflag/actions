@@ -58,3 +58,6 @@ Store all sensitive values as GitHub Secrets in your repository or organization.
   - Select "Require branches to be up to date before merging"
   - Below that, set "security-approval" as Status Check 
 - Save
+
+
+![Example of blocked PR](blocked_PR.png)
