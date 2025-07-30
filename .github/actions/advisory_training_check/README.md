@@ -37,7 +37,7 @@ jobs:
 ```
 
 #### Required Variables
-To run the action, set the following inputs:
+The job uses the following inputs:
 
 - `target_repo`: The full name of the repository (e.g., org/repo). `${{ github.repository }}` sets the current org/repo
 - `gh_token`: (Required) GitHub token with permission to:
@@ -46,11 +46,12 @@ To run the action, set the following inputs:
   - Read the commits messages
   - Create a comment in a Pull Request
 - `api_endpoint`: SecureFlag API endpoint URL.
-- `api_token`: (Required) API token to authenticate with SecureFlag.  
+- `api_token`: (Required) API token to authenticate with SecureFlag.
+
 Store all sensitive values as GitHub Secrets in your repository or organization.
 
 ### Set Branch Protection rule to enforce blocking of the Pull Request
-- Repo Settings
+- Repository Settings
 - Branches
 - Add Branch protection rule
   - Set branch name pattern (eg. "main")
@@ -59,5 +60,5 @@ Store all sensitive values as GitHub Secrets in your repository or organization.
   - Below that, set "security-approval" as Status Check 
 - Save
 
-
+#### Example of blocked PR
 ![Example of blocked PR](blocked_PR.png)
