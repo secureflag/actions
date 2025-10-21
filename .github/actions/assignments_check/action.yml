@@ -89,22 +89,22 @@ runs:
         # Build API request payload based on assignment check type
         PAYLOAD=""
         REQUIREMENT_NAME=""
-        REQUIREMENT_ΝΟΤΜΕΤ_NAME=""
+        REQUIREMENT_NOTMET_NAME=""
         case "$ASSIGNMENT_CHECK_TYPE" in
           completed_initial)
             PAYLOAD="{\"user\":\"$COMMITTER_EMAIL\",\"hasCompletedInitialAssignments\":true}"
             REQUIREMENT_NAME="completed initial assignments"
-            REQUIREMENT_ΝΟΤΜΕΤ_NAME="initial assignments"
+            REQUIREMENT_NOTMET_NAME="initial assignments"
             ;;
           completed_pending)
             PAYLOAD="{\"user\":\"$COMMITTER_EMAIL\",\"hasCompletedPendingAssignments\":true}"
             REQUIREMENT_NAME="completed pending assignments"
-            REQUIREMENT_ΝΟΤΜΕΤ_NAME="pending assignments"
+            REQUIREMENT_NOTMET_NAME="pending assignments"
             ;;
           not_expired)
             PAYLOAD="{\"user\":\"$COMMITTER_EMAIL\",\"hasNotExpiredAssignments\":true}"
             REQUIREMENT_NAME="no expired assignments"
-            REQUIREMENT_ΝΟΤΜΕΤ_NAME="expired assignments"
+            REQUIREMENT_NOTMET_NAME="expired assignments"
             ;;
           *)
             echo "❌ Invalid assignment check type: $ASSIGNMENT_CHECK_TYPE"
@@ -145,7 +145,7 @@ runs:
           echo "requirement_name=$REQUIREMENT_NAME" >> $GITHUB_OUTPUT
           exit 0
         else
-          echo "❌ Assignment verification failed: \"$COMMITTER_EMAIL\" has non-completed $REQUIREMENT_ΝΟΤΜΕΤ_NAME"
+          echo "❌ Assignment verification failed: \"$COMMITTER_EMAIL\" has non-completed $REQUIREMENT_NOTMET_NAME"
           echo "requirement_name=$REQUIREMENT_NAME" >> $GITHUB_OUTPUT
           exit 1
         fi
