@@ -70,3 +70,4 @@ Store all sensitive values as GitHub Secrets in your repository or organization.
 
 #### Example of blocked PR
 When assignments are incomplete, the PR will be blocked with a comment indicating what requirements need to be met and a link to SecureFlag to complete the assignments.
+![Example of blocked PR](blocked_PR.png)
