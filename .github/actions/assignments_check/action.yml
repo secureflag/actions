@@ -89,6 +89,7 @@ runs:
         # Build API request payload based on assignment check type
         PAYLOAD=""
         REQUIREMENT_NAME=""
+        REQUIREMENT_ΝΟΤΜΕΤ_NAME=""
         case "$ASSIGNMENT_CHECK_TYPE" in
           completed_initial)
             PAYLOAD="{\"user\":\"$COMMITTER_EMAIL\",\"hasCompletedInitialAssignments\":true}"
