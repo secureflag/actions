@@ -51,6 +51,7 @@ The job uses the following inputs:
   - Read the Pull Request's description
   - Read the commits messages
   - Create a comment in a Pull Request
+  - Classic Personal Access Token with "public_repo" permission should suffice
 - `api_endpoint`: (Optional) SecureFlag API endpoint URL. Defaults to `https://api.secureflag.com/rest/management/v2/users/hasCompletedTraining`
 - `api_token`: (Required) API token to authenticate with SecureFlag.
 - `assignment_check_type`: (Optional) Type of assignment check to perform: `completed_initial`, `completed_pending`, or `not_expired`. Defaults to `completed_pending`.
