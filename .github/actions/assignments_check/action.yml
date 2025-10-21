@@ -94,7 +94,7 @@ runs:
           completed_initial)
             PAYLOAD="{\"user\":\"$COMMITTER_EMAIL\",\"hasCompletedInitialAssignments\":true}"
             REQUIREMENT_NAME="completed initial assignments"
-            REQUIREMENT_NOTMET_NAME="initial assignments"
+            REQUIREMENT_NOTMET_NAME="non-completed initial assignments"
             ;;
           completed_pending)
             PAYLOAD="{\"user\":\"$COMMITTER_EMAIL\",\"hasCompletedPendingAssignments\":true}"
@@ -145,7 +145,7 @@ runs:
           echo "requirement_name=$REQUIREMENT_NAME" >> $GITHUB_OUTPUT
           exit 0
         else
-          echo "❌ Assignment verification failed: \"$COMMITTER_EMAIL\" has non-completed $REQUIREMENT_NOTMET_NAME"
+          echo "❌ Assignment verification failed: \"$COMMITTER_EMAIL\" has $REQUIREMENT_NOTMET_NAME"
           echo "requirement_name=$REQUIREMENT_NAME" >> $GITHUB_OUTPUT
           exit 1
         fi
