@@ -144,7 +144,7 @@ runs:
           echo "requirement_name=$REQUIREMENT_NAME" >> $GITHUB_OUTPUT
           exit 0
         else
-          echo "❌ Assignment verification failed: \"$COMMITTER_EMAIL\" has non-completed $REQUIREMENT_NOTMET_NAME"
+          echo "❌ Assignment verification failed: \"$COMMITTER_EMAIL\" has non-completed $REQUIREMENT_ΝΟΤΜΕΤ_NAME"
           echo "requirement_name=$REQUIREMENT_NAME" >> $GITHUB_OUTPUT
           exit 1
         fi
