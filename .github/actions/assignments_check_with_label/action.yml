@@ -191,7 +191,7 @@ runs:
 
         LABEL_NAME="pending assignments"
         # Check if label exists
-        if ! gh label view "$LABEL_NAME" >/dev/null 2>&1; then
+        if ! gh label list --search "$LABEL_NAME" >/dev/null 2>&1; then
           echo "Label \"$LABEL_NAME\" not found. Creating it..."
           gh label create "$LABEL_NAME" --color FFA500 --description "Pull requests with pending assignments"
         else
