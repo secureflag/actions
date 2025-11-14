@@ -188,7 +188,16 @@ runs:
 
         # Post the comment using the file content
         gh issue comment "$PR_NO" --body-file "$TEMP_FILE"
-        gh pr edit "$PR_NO" --add-label "pending assignments"
+
+        LABEL_NAME="pending assignments"
+        # Check if label exists
+        if ! gh label view "$LABEL_NAME" >/dev/null 2>&1; then
+          echo "Label \"$LABEL_NAME\" not found. Creating it..."
+          gh label create "$LABEL_NAME" --color FFA500 --description "Pull requests with pending assignments"
+        else
+          echo "Label \"$LABEL_NAME\" already exists."
+        fi
+        gh pr edit "$PR_NO" --add-label "$LABEL_NAME"
 
         # Clean up
         rm "$TEMP_FILE"
