@@ -9,7 +9,7 @@ When the action runs, it:
 
 ## How to Use
 ### Add the following snippet to your workflow file
-(e.g., `.github/workflows/threat-model.yml`)
+(e.g., `.github/workflows/threatcanvas.yml`)
 
 ```yaml
 name: Generate Threat Model with ThreatCanvas
