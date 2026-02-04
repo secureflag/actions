@@ -26,22 +26,22 @@ jobs:
       - uses: actions/checkout@v4
       - uses: secureflag/actions/.github/actions/repo_to_threat_model@main
         with:
-          api_key: ${{ secrets.SECUREFLAG_API_KEY }}
-          anthropic_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          model_uuid: ${{ secrets.SECUREFLAG_MODEL_UUID }}
+          SECUREFLAG_API_KEY: ${{ secrets.SECUREFLAG_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SECUREFLAG_MODEL_UUID: ${{ secrets.SECUREFLAG_MODEL_UUID }}
 ```
 
 #### Required Variables
 The job uses the following inputs:
 
-- `api_key`: (Required) SecureFlag API key for authentication.
-- `anthropic_key`: (Required) Anthropic API key for AI-powered analysis.
-- `model_uuid`: (Required) SecureFlag model UUID identifying the target threat model.
+- `SECUREFLAG_API_KEY`: (Required) SecureFlag API key for authentication.
+- `ANTHROPIC_API_KEY`: (Required) Anthropic API key for AI-powered analysis.
+- `SECUREFLAG_MODEL_UUID`: (Required) SecureFlag model UUID identifying the target threat model.
 
 #### Optional Variables
 
-- `commands`: Commands to run. Defaults to `model-repo`.
-- `repo_path`: Restrict analysis to a specific directory within the repository.
-- `component_limit`: Hinted number of nodes in ThreatCanvas diagrams.
+- `SECUREFLAG_COMMANDS`: Commands to run. Defaults to `model-repo`.
+- `SECUREFLAG_REPO_PATH`: Restrict analysis to a specific directory within the repository.
+- `SECUREFLAG_COMPONENT_LIMIT`: Hinted number of nodes in ThreatCanvas diagrams.
 
 Store all sensitive values as GitHub Secrets in your repository or organization.
