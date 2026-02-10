@@ -28,7 +28,7 @@ jobs:
         with:
           SECUREFLAG_API_KEY: ${{ secrets.SECUREFLAG_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          SECUREFLAG_MODEL_UUID: ${{ secrets.SECUREFLAG_MODEL_UUID }}
+          SECUREFLAG_MODEL_UUID: ${{ vars.SECUREFLAG_MODEL_UUID }}
 ```
 
 #### Required Variables
