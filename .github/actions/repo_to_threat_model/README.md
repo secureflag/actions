@@ -51,11 +51,11 @@ jobs:
 #### AI Provider Variables (choose one)
 
 **Option 1 - Anthropic:**
-- `ANTHROPIC_API_KEY`: Anthropic API key for AI-powered analysis.
+- `ANTHROPIC_API_KEY`: Anthropic API key.
 - `ANTHROPIC_MODEL`: (Optional) Model name. Default: `claude-sonnet-4-20250514`
 
 **Option 2 - OpenAI:**
-- `OPENAI_API_KEY`: OpenAI API key for AI-powered analysis.
+- `OPENAI_API_KEY`: OpenAI API key.
 - `OPENAI_MODEL`: (Optional) Model name. Default: `gpt-4o`
 
 **Option 3 - Azure OpenAI:**
