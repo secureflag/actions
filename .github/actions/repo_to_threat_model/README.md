@@ -9,7 +9,7 @@ When the action runs, it:
 
 ## Supported AI Providers
 
-This action supports **Anthropic**, **OpenAI**, and **Azure OpenAI** for code analysis. Configure only one provider.
+This action supports **Anthropic**, **OpenAI**, **Azure OpenAI**, and **Google Gemini** for code analysis. Configure only one provider.
 
 ## How to Use
 ### Add the following snippet to your workflow file
@@ -41,6 +41,8 @@ jobs:
           # AZURE_OPENAI_KEY: ${{ secrets.AZURE_OPENAI_KEY }}
           # AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
           # AZURE_OPENAI_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_DEPLOYMENT }}
+          # Option 4 - Gemini:
+          # GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 ```
 
 #### Required Variables
@@ -63,6 +65,10 @@ jobs:
 - `AZURE_OPENAI_ENDPOINT`: Azure endpoint URL (e.g., `https://your-resource.openai.azure.com/`)
 - `AZURE_OPENAI_DEPLOYMENT`: Azure deployment name.
 - `AZURE_OPENAI_API_VERSION`: (Optional) API version. Default: `2024-02-15-preview`
+
+**Option 4 - Gemini:**
+- `GEMINI_API_KEY`: Google Gemini API key.
+- `GEMINI_MODEL`: (Optional) Model name. Default: `gemini-2.5-flash`
 
 #### Optional Variables
 
