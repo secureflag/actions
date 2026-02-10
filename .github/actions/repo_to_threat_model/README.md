@@ -7,6 +7,10 @@ When the action runs, it:
 - Uses AI to identify potential security threats and attack vectors.
 - Generates a threat model in SecureFlag's ThreatCanvas format.
 
+## Supported AI Providers
+
+This action supports **Anthropic**, **OpenAI**, and **Azure OpenAI** for code analysis. Configure only one provider.
+
 ## How to Use
 ### Add the following snippet to your workflow file
 (e.g., `.github/workflows/threatcanvas.yml`)
