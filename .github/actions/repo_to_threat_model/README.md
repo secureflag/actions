@@ -27,16 +27,38 @@ jobs:
       - uses: secureflag/actions/.github/actions/repo_to_threat_model@main
         with:
           SECUREFLAG_API_KEY: ${{ secrets.SECUREFLAG_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SECUREFLAG_MODEL_UUID: ${{ vars.SECUREFLAG_MODEL_UUID }}
+          # AI Provider - choose ONE of the following options:
+          # Option 1 - Anthropic:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Option 2 - OpenAI:
+          # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # Option 3 - Azure OpenAI:
+          # AZURE_OPENAI_KEY: ${{ secrets.AZURE_OPENAI_KEY }}
+          # AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          # AZURE_OPENAI_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_DEPLOYMENT }}
 ```
 
 #### Required Variables
-The job uses the following inputs:
 
-- `SECUREFLAG_API_KEY`: (Required) SecureFlag API key for authentication.
-- `ANTHROPIC_API_KEY`: (Required) Anthropic API key for AI-powered analysis.
-- `SECUREFLAG_MODEL_UUID`: (Required) SecureFlag model UUID identifying the target threat model.
+- `SECUREFLAG_API_KEY`: SecureFlag API key for authentication.
+- `SECUREFLAG_MODEL_UUID`: SecureFlag model UUID identifying the target threat model.
+
+#### AI Provider Variables (choose one)
+
+**Option 1 - Anthropic:**
+- `ANTHROPIC_API_KEY`: Anthropic API key for AI-powered analysis.
+- `ANTHROPIC_MODEL`: (Optional) Model name. Default: `claude-sonnet-4-20250514`
+
+**Option 2 - OpenAI:**
+- `OPENAI_API_KEY`: OpenAI API key for AI-powered analysis.
+- `OPENAI_MODEL`: (Optional) Model name. Default: `gpt-4o`
+
+**Option 3 - Azure OpenAI:**
+- `AZURE_OPENAI_KEY`: Azure OpenAI API key.
+- `AZURE_OPENAI_ENDPOINT`: Azure endpoint URL (e.g., `https://your-resource.openai.azure.com/`)
+- `AZURE_OPENAI_DEPLOYMENT`: Azure deployment name.
+- `AZURE_OPENAI_API_VERSION`: (Optional) API version. Default: `2024-02-15-preview`
 
 #### Optional Variables
 
