@@ -35,14 +35,18 @@ jobs:
           # AI Provider - choose ONE of the following options:
           # Option 1 - Anthropic:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # ANTHROPIC_MODEL: claude-sonnet-4-20250514  # optional
           # Option 2 - OpenAI:
           # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # OPENAI_MODEL: gpt-4o  # optional
           # Option 3 - Azure OpenAI:
           # AZURE_OPENAI_KEY: ${{ secrets.AZURE_OPENAI_KEY }}
           # AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
           # AZURE_OPENAI_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_DEPLOYMENT }}
+          # AZURE_OPENAI_API_VERSION: 2024-02-15-preview  # optional
           # Option 4 - Gemini:
           # GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # GEMINI_MODEL: gemini-2.5-flash  # optional
 ```
 
 #### Required Variables
