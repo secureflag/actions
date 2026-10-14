@@ -115,11 +115,25 @@ runs:
 
         echo "Verifying $REQUIREMENT_NAME for \"$COMMITTER_EMAIL\""
 
-        response=$(curl -s \
+        response=$(curl -s -w $'\n%{http_code}' \
           -H "Authorization: Bearer ${{ inputs.api_token }}" \
           -H "Content-Type: application/json" \
           -d "$PAYLOAD" \
           "$API_ENDPOINT")
+        http_code=$(tail -n1 <<< "$response")
+        response=$(sed '$d' <<< "$response")
+
+        # HTTP-level failure (bad/expired token, server error): the body carries
+        # errorMessage/errorCode rather than error/errorMsg, so skip verification
+        # here instead of falling through and blocking the push.
+        if [[ "$http_code" != 2* ]]; then
+          apiError=$(jq -r '.errorMessage // empty' <<< "$response" 2>/dev/null)
+          message="⚠️ Skipping assignment verification, API request failed with HTTP $http_code${apiError:+ ($apiError)}"
+          echo "$message"
+          echo "requirement_name=$REQUIREMENT_NAME" >> $GITHUB_OUTPUT
+          echo "skip_reason=APIError" >> $GITHUB_OUTPUT
+          exit 0
+        fi
 
         result=$(echo "$response" | jq -r '.result')
         error=$(echo "$response" | jq -r '.error')
